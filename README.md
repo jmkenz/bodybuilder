@@ -6,7 +6,8 @@ BodyBuilder
 
 Existing RTEs often generate markup that is less-than-ideal, rely too heavily on
 inline styles that are disjointed from the website's stylesheets, and generally
-exhibit finicky behaviour for the end user.
+exhibit finicky behaviour for the end user. Furthermore, in a world focused on
+responsive design and accessibility, most RTEs have started to feel outdated.
 
 **BodyBuilder's aims are the following:**
 
@@ -20,12 +21,10 @@ exhibit finicky behaviour for the end user.
     complex markup patterns that remain protected from accidental corruption,
     even in HTML view
 
-    -   E.g. For an expanding block of text, the end-user would be given a modal
-        window where they define the expander link, and the hidden content that
-        gets expanded. The widget then puts those pieces together with the
-        appropriate markup and inserts the result into the content.
-
 -   Make it easier to create responsive multi-column layouts without tables
+
+-   Allow for the integration of the responsive images solution of the
+    developer's choice
 
 Anyone who's tried these things with existing RTEs has likely had trouble doing
 the following without going into the raw HTML view:
@@ -39,6 +38,8 @@ the following without going into the raw HTML view:
     classes or attributes to that container
 
 -   Trouble creating and visualizing multiple columns without tables
+
+-   Trouble defining multiple image sources for a single \<img\>
 
 **So far, BodyBuilder is only an idea.** I'm looking for other developers to
 help solidify the functional requirements and to help with programming. If you
@@ -110,8 +111,8 @@ CREATING ELEMENTS
 
 -   An \<hr\> toolbar button creates \<hr\> horizontal rule elements
 
--   Highlighted text can be wrapped with any inline element (e.g. \<span\>,
-    \<date\>)
+-   Highlighted text can be wrapped with any element type (defaults to \<span\>
+    if a class or format is applied to highlighted piece of text)
 
 -   Pasted content will retain only the following: Bold or italic text, line
     breaks, paragraphs, Lists, basic table markup, hyperlinks
@@ -128,9 +129,9 @@ TARGETING THE RIGHT ELEMENT
 ### Selecting specific HTML elements to modify attributes
 
 -   It’s often difficult in current RTEs to select the right element. For
-    example, if you target the <ul> by highlighting all the list items, you’ll
-    often actually be modifying all of the <li> elements within, individually.
-    If you target the <a>, sometimes you actually modify the parent <p>.
+    example, if you target the \<ul\> by highlighting all the list items, you’ll
+    often actually be modifying all of the \<li\> elements within, individually.
+    If you target the \<a\>, sometimes you actually modify the parent \<p\>.
 
 -   BodyBuilder will allow the author to clearly select the element at the right
     level in the markup hierarchy, in order to modify that specific element’s
@@ -217,15 +218,57 @@ INSERTING PROTECTED MARKUP PATTERNS (WIDGETS)
 
 -   Text area fields can be simple text areas, or another BodyBuilder instance.
 
--   This allows for widgets within widgets.
+    -   This allows for widgets within widgets.
 
--   Widgets consist of the form and the output markup, and a library of widgets
-    is available online for public contributions.
+-   Widgets consist of the form and the output markup
+
+-   A library of widgets is available online for public contributions.
 
 -   Output markup is protected. It can’t be edited even in HTML view.
 
--   Widget examples: Twisty links / Expandable areas, Specific heading/content
-    combo, or image/content combo, Accordion, Slider
+-   **Example:** For an expanding block of text, the end-user would be given a
+    modal window where they define the expander link, and the hidden content
+    that gets expanded. The hidden content is defined in a nested instance of
+    BodyBuilder, so it can be comprised of anything. The widget then puts the
+    pieces together with the appropriate markup and inserts the result into the
+    content.
+
+-   Other widget examples:
+
+    -   Responsive image set
+
+    -   Specific heading/content combo
+
+    -   Specific image/content combo
+
+    -   Accordion
+
+    -   Slider
+
+    -   Etc.
+
+
+
+INTEGRATING IMAGES IN A RESPONSIVE DESIGN WORLD
+-----------------------------------------------
+
+Now that responsive images are becoming the norm, inserting a simple \<img\> tag
+isn't going to cut it anymore in many cases. Responsive images often require
+multiple image sources for the browser to choose from depending on pixel density
+and viewport width.
+
+The BodyBuilder approach to images relies on the power of widgets. Any
+responsive images solution can be integrated as a custom widget that generates
+the exact markup pattern the developer wants to use. If a true responsive images
+standard emerges, this can be built into BodyBuilder as a standard widget.
+
+The end user would specify one or more images and some alt text, and the widget
+would generate the necessary markup.  This markup pattern could then be wrapped
+in a link to turn it into an image link. Or it could be wrapped in a \<div\>
+that has classes applied to float it to the left, and ensure a width of 33%, for
+example.
+
+
 
 EXISTING EDITORS OFFERING INSPIRATION
 -------------------------------------

@@ -1,15 +1,12 @@
 BodyBuilder
 ===========
 
-**A rich text editor that’s tired of messing around**
-
-Object-oriented WYSIWY**M **(What You See Is What You *Mean*) rich text editor
-
-
+**A rich text editor that’s tired of messing around**  
+(Object-oriented WYSIWY*M* [What You See Is What You *Mean*] rich text editor)
 
 Existing RTEs often generate markup that is less-than-ideal, rely too heavily on
-inline styles that are disjointed from the website's stylesheets, and are
-generally rather finicky for the end user.
+inline styles that are disjointed from the website's stylesheets, and generally
+exhibit finicky behaviour for the end user.
 
 **BodyBuilder's aims are the following:**
 
@@ -119,7 +116,7 @@ CREATING ELEMENTS
 -   Pasted content will retain only the following: Bold or italic text, line
     breaks, paragraphs, Lists, basic table markup, hyperlinks
 
-### Select multiple elements and wrap them in a new parent container (<div>, <aside>, etc.)
+### Select multiple elements and wrap them in a new parent container
 
 -   Highlighting multiple elements will often modify each of them individually -
     what if we want to create a container and modify that instead? BodyBuilder
@@ -200,8 +197,8 @@ CREATING RESPONSIVE LAYOUTS
 -   System generates a row container \<div\>, and \<div\> elements within for
     each column
 
--   System adds developer-defined classes to the row container <div> (e.g.
-    ‘row’) and column <div>s (e.g. ‘col’).
+-   System adds developer-defined classes to the row container \<div\> (e.g.
+    ‘row’) and column \<div\>s (e.g. ‘col’).
 
 -   Author selects classes to add to each column \<div\>.
 
@@ -230,8 +227,8 @@ INSERTING PROTECTED MARKUP PATTERNS (WIDGETS)
 -   Widget examples: Twisty links / Expandable areas, Specific heading/content
     combo, or image/content combo, Accordion, Slider
 
-BEST EXISTING EDITORS
----------------------
+EXISTING EDITORS OFFERING INSPIRATION
+-------------------------------------
 
 -   [http://xopus.com/demo/rich-text][1]
 
@@ -261,9 +258,13 @@ BEST EXISTING EDITORS
 
 [7]: <http://www.elegantthemes.com/gallery/elegant-builder/>
 
-ARTICLES
---------
+RELEVANT ARTICLES
+-----------------
 
--   http://www.standards-schmandards.com/2006/wysiwym/
+-   [http://www.standards-schmandards.com/2006/wysiwym/][8]
 
--   http://www.xstandard.com/en/articles/wysiwyg-editors-and-bad-markup/
+[8]: <http://www.standards-schmandards.com/2006/wysiwym/>
+
+-   [http://www.xstandard.com/en/articles/wysiwyg-editors-and-bad-markup/][9]
+
+[9]: <http://www.xstandard.com/en/articles/wysiwyg-editors-and-bad-markup/>

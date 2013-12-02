@@ -180,14 +180,6 @@ MODIFYING ELEMENTS
 
 -   For links: href, target, tab-index, title, onclick
 
-### Add/Edit inline styles for any object
-
--   CSS property selected from a drop down list, and the value is typed in
-
--   Available styles can be developer-specified
-
--   Additional properties added as needed (repeating fields ‘+’ button)
-
 CREATING RESPONSIVE LAYOUTS
 ---------------------------
 

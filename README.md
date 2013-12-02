@@ -94,7 +94,7 @@ FUNCTIONAL OBJECTIVES
 CREATING ELEMENTS
 -----------------
 
--   ‘Enter key’ creates a new <p> by default
+-   ‘Enter key’ creates a new \<p\> by default
 
 -   Easy to select the \<p\> and change it into any other block level element
 

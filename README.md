@@ -2,7 +2,7 @@ BodyBuilder
 ===========
 
 **A rich text editor that’s tired of messing around**  
-(Object-oriented WYSIWY*M* [What You See Is What You *Mean*] rich text editor)
+(Object-oriented WYSIWY**M** [What You See Is What You *Mean*] rich text editor)
 
 
 

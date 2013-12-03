@@ -45,17 +45,17 @@ and help make this a reality for the web development community!
 all containers, including empty containers that can cause unwanted vertical
 space.**
 
-    -   Clicking into some text will reveal the entire markup hierarchy and make
-        each parent easily selectable. The author can then highlight a piece of
-        text to modify, or, select a parent element as a whole.
+-   Clicking into some text will reveal the entire markup hierarchy and make
+    each parent easily selectable. The author can then highlight a piece of text
+    to modify, or, select a parent element as a whole.
 
-    -   A toggle button is available to show all elements in the current
-        container as distinct, selectable objects. Blocks within blocks within
-        blocks. Blocks on top of and under other blocks. Every element is turned
-        into a click-to-select block with comfortable amounts of padding and
-        margins keeping everything separate.
+-   A toggle button is available to show all elements in the current container
+    as distinct, selectable objects. Blocks within blocks within blocks. Blocks
+    on top of and under other blocks. Every element is turned into a
+    click-to-select block with comfortable amounts of padding and margins
+    keeping everything separate.
 
-    -   \<br\> elements will be revealed as visual blocks as well
+-   \<br\> elements will be revealed as visual blocks as well
 
 
 
@@ -86,8 +86,8 @@ that element**
 
 **Wrap multiple elements inside a single new container element of any sort**
 
-    -   Instead of adding repetitive styles/classes to many individual elements,
-        add classes to a parent container
+-   Instead of adding repetitive styles/classes to many individual elements, add
+    classes to a parent container
 
 
 

@@ -2,11 +2,10 @@ BodyBuilder
 ===========
 
 **A rich text editor that’s tired of messing around**  
-(Object-oriented WYSIWY**M** [What You See Is What You *Mean*] rich text editor)
+What You See Is What You *Mean* rich text editor
 
-
-
-### Key Features
+Key Features
+------------
 
 -   Visualize and select any HTML element (or any of its parent tags)
 
@@ -30,20 +29,16 @@ BodyBuilder
 
 -   Edit HTML with the benefit of tab formatting and color coding
 
-
-
 **So far, BodyBuilder is only an idea.** I'm looking for other developers to
-help solidify the design and to help with programming. If you have advanced
-JavaScript skills or simply want to suggest improvements, please get in touch
-and help make this a reality for the web development community!
+help solidify the design and to help with programming. This could either start
+as a standalone editor, or be a branch or plugin for an existing editor. If you
+have advanced JavaScript skills or simply want to suggest improvements, please
+get in touch and help make this a reality for the web development community!
 
+Detailed Functionality
+----------------------
 
-
-### Detailed Functionality
-
-**Toggle to visualize all elements as blocks. Cleanly visualize the borders of
-all containers, including empty containers that can cause unwanted vertical
-space.**
+### Toggle to visualize all elements as blocks. Cleanly visualize the borders of all containers, including empty containers that can cause unwanted vertical space.
 
 -   Clicking into some text will reveal the entire markup hierarchy and make
     each parent easily selectable. The author can then highlight a piece of text
@@ -57,10 +52,7 @@ space.**
 
 -   \<br\> elements will be revealed as visual blocks as well
 
-
-
-**Directly select any element in order to add classes or other attributes to
-that element**
+### Directly select any element in order to add classes or other attributes to that element
 
 -   It’s often difficult in current RTEs to select the right element. For
     example, if you target the \<ul\> by highlighting all the list items, you’ll
@@ -82,17 +74,12 @@ that element**
 
     -   Etc.
 
-    
-
-**Wrap multiple elements inside a single new container element of any sort**
+### Wrap multiple elements inside a single new container element of any sort
 
 -   Instead of adding repetitive styles/classes to many individual elements, add
     classes to a parent container
 
-
-
-**Configure HTML attributes on any element (including aria attributes, and
-custom data attributes)**
+### Configure HTML attributes on any element (including aria attributes, and custom data attributes)
 
 -   Multiple css classes selected from a categorized list, or typed into a field
 
@@ -110,10 +97,7 @@ custom data attributes)**
 
 -   For links: href, target, tab-index, title, onclick
 
-
-
-**Create responsive multi-column layouts using default or developer-specified
-CSS grid classes**
+### Create responsive multi-column layouts using default or developer-specified CSS grid classes
 
 -   Author selects number of columns
 
@@ -129,10 +113,7 @@ CSS grid classes**
     grids in play, each targeting different viewport ranges.  (e.g. ‘m-1o2
     d-1of3’)
 
-
-
-**Pasted content contains no inline styles. It retains only the following as
-markup: **
+### Pasted content contains no inline styles. It retains only the following as markup: 
 
 -   Bold or italic text
 
@@ -150,9 +131,7 @@ markup: **
 
 -   Hyperlinks
 
-
-
-**Add widgets into the content**
+### Add widgets into the content
 
 -   Widgets are complex markup patterns with editable fields, whose markup is
     protected from corruption, even in HTML view
@@ -196,9 +175,7 @@ markup: **
 
     -   Etc.
 
-
-
-**Integrating responsive images**
+### Integrating responsive images
 
 -   Now that responsive images are becoming the norm, inserting a simple \<img\>
     tag isn't going to cut it anymore in many cases. Responsive images often
@@ -217,32 +194,25 @@ markup: **
     in a \<div\> that has classes applied to float it to the left, and ensure a
     width of 33%, for example.
 
-
-
-**Create data tables with appropriate markup**
+### Create data tables with appropriate markup
 
 -   \<thead\> and \<th\> elements
 
 -   ‘headers’ attributes that reference \<th\> IDs (auto-generated)
 
-
-
-**Avoid cursor traps**
+### Avoid cursor traps
 
 -   Simple to add a new element underneath a table or any other container
 
-
-
-**Better HTML views**
+### Better HTML views
 
 -   Isolated HTML editing of individual elements and their descendents, without
     disrupting any surrounding markup
 
 -   Full HTML view shows colour-coded and indented code
 
-
-
-### EXISTING EDITORS OFFERING INSPIRATION
+EXISTING EDITORS OFFERING INSPIRATION
+-------------------------------------
 
 -   [http://xopus.com/demo/rich-text][1]
 
@@ -272,7 +242,8 @@ markup: **
 
 [7]: <http://www.elegantthemes.com/gallery/elegant-builder/>
 
-### RELEVANT ARTICLES
+RELEVANT ARTICLES
+-----------------
 
 -   [http://www.standards-schmandards.com/2006/wysiwym/][8]
 

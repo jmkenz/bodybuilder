@@ -4,6 +4,9 @@ BodyBuilder
 **A rich text editor that’s tired of messing around**  
 What You See Is What You *Mean* rich text editor
 
+[No inline styles] - [Enhanced tag selection] - [Isolated Widgets] - [Responsive
+grids] - [Responsive images]
+
 Key Features
 ------------
 

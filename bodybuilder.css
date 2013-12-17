@@ -1,3 +1,24 @@
-.bbuilder-edit {
-	outline: 1px dotted #555;
+.bbuilder-edit:hover {
+	background: #fafafa;
+}
+
+ul.bbuilder-edit:focus {
+	padding-top: 30px;
+	padding-bottom: 30px;
+}
+
+ul.bbuilder-edit:focus li{
+	outline: 1px dashed blue;
+	margin-bottom: 8px;
+}
+
+.bbuilder-edit:focus {
+	padding: 3px;
+	background: #fafafa;
+	outline: 1px dashed orange;
+	cursor: text;
+}
+
+.x-large {
+	font-size: 1.5em;
 }

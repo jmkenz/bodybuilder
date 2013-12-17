@@ -71,3 +71,12 @@ $('.view-source').click(function() {
 	});
 	prettyPrint();
 });
+
+$('.bbuilder-instance').on('click', 'ul', function() {
+	$(this).append('<div class="add-sibling">+</div>');
+});
+
+$('.bbuilder-instance').on('click', '.add-sibling', function(event) {
+	
+	alert('test');
+});

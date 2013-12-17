@@ -46,4 +46,28 @@ Carrot characters (< >) get converted to <span class="ct">&lt;</span> and <span 
 
 Similarly, special characters get converted to a full code visual: (e.g. &amp; becomes &amp;amp;). 
 
-Full HTML view strips all contenteditable attributes, and then wraps all editable blocks in <pre><code contenteditable="true"> and only strips them back out when Full HTML view is toggled off.  Again, widget blocks are excluded from this.*/
+Full HTML view strips all contenteditable attributes, and then wraps all editable blocks in <pre><code contenteditable="true" class="bbuilder-edit prettyprint lang-html"> and only strips them back out when Full HTML view is toggled off.  Again, widget blocks are excluded from this.
+
+prettify.js is used to colorize the code. This will insert <span> tags throughout. These <spans> will need to be stripped out when exiting HTML view.
+
+*/
+
+
+
+
+(function( $ ){
+	$.fn.viewSource = function() {
+		
+		var htmlContent = $(this).clone().wrap('<p>').parent().html().replace(/</g, '&lt;').replace(/>/g, '&gt;').replace('contenteditable="true"', '').replace('contenteditable="false"', '');
+
+		$(this).replaceWith('<pre><code contenteditable="true" class="bbuilder-edit prettyprint lang-html">'+htmlContent+'</code></pre>');
+		
+	}; 
+})( jQuery );
+
+$('.view-source').click(function() {
+	$(this).siblings('.bbuilder-content').first().find('.bbuilder-edit').each(function(){
+		$(this).viewSource();
+	});
+	prettyPrint();
+});

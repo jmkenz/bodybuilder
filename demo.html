@@ -5,24 +5,26 @@
 <head>
 <title>BodyBuilder Rich Text Editor Demo</title>
 <link href="bodybuilder.css" rel="stylesheet" type="text/css" /> 
+<link href="prettify.css" rel="stylesheet" type="text/css" /> 
 </head>
 
 <body>
 
 <div class="bbuilder-instance">
-	<p contenteditable="true" class="bbuilder-edit x-large">Test</p>
-	<ul contenteditable="true" class="bbuilder-edit">
-		<li contenteditable="false" class="bbuilder-edit">Item 1</li>
-		<li contenteditable="false" class="bbuilder-edit">Item 2</li>
-		<li contenteditable="false" class="bbuilder-edit">Item 3</li>
-	</ul>
-	
-	
-	<pre><code contenteditable="true" class="bbuilder-edit">&lt;p class="x-large"&gt;Test&lt;/p&gt;</code></pre>
+	<a href="javascript:void(0);" class="view-source">View Source</a>
+	<div class="bbuilder-content">
+		<p contenteditable="true" class="bbuilder-edit x-large">Test</p>
+		<ul contenteditable="true" class="bbuilder-edit">
+			<li contenteditable="false" class="bbuilder-edit">Item 1</li>
+			<li contenteditable="false" class="bbuilder-edit">Item 2</li>
+			<li contenteditable="false" class="bbuilder-edit">Item 3</li>
+		</ul>
+	</div>
 </div>
 
 <script src="jquery.js"></script>
 <script src="bodybuilder.js"></script>
+<script src="prettify.js"></script>
 </body>
 
 </html>

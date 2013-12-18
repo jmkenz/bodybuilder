@@ -4,17 +4,84 @@
 
 
 /*Enter key creates a new editable block.  Each separate block has a .bbuilder-edit class */
-
-
 /*Shift+Enter creates a (visible) <br> element within current editable block*/
 
+
+/* http://jsfiddle.net/timdown/jwvha/527/ */
+function pasteHtmlAtCaret(html) {
+    var sel, range;
+    if (window.getSelection) {
+        // IE9 and non-IE
+        sel = window.getSelection();
+        if (sel.getRangeAt && sel.rangeCount) {
+            range = sel.getRangeAt(0);
+            range.deleteContents();
+
+            // Range.createContextualFragment() would be useful here but is
+            // only relatively recently standardized and is not supported in
+            // some browsers (IE9, for one)
+            var el = document.createElement("div");
+            el.innerHTML = html;
+            var frag = document.createDocumentFragment(), node, lastNode;
+            while ( (node = el.firstChild) ) {
+                lastNode = frag.appendChild(node);
+            }
+            var firstNode = frag.firstChild;
+            range.insertNode(frag);
+
+            // Preserve the selection
+            if (lastNode) {
+                range = range.cloneRange();
+                range.setStartAfter(lastNode);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+        }
+    } else if ( (sel = document.selection) && sel.type != "Control") {
+        // IE < 9
+        var originalRange = sel.createRange();
+        originalRange.collapse(true);
+        sel.createRange().pasteHTML(html);
+    }
+}
+
+
+$('.bbuilder-content').on('keypress', '.bbuilder-edit', function(event) {
+	
+	if (event.keyCode == 13 && event.shiftKey) {
+		/*Perhaps use https://code.google.com/p/rangy/ for this*/
+		event.preventDefault();
+		pasteHtmlAtCaret('<br><br>');
+
+	} else if ( event.keyCode == 13 ) {
+		event.preventDefault();
+		var $dupElem = $(this).clone();
+		$dupElem.empty();
+		$(this).after($dupElem);
+		$(this).next().click();
+	}
+
+
+});
+
+
+
+
+
 /*List items*/
-$(document).on('click', 'li', function() {
+$('.bbuilder-content').on('click', 'li', function() {
 	$(this).parent('ul').attr('contenteditable', 'false');
 	$(this).attr('contenteditable', 'true').focus();
 });
 
 
+
+
+
+
+/*---- PASTING CONTENT ------*/
+/*This will require some serious thought*/
 
 /*---- ADDING CLASSES -----*/
 
@@ -42,7 +109,7 @@ $(document).on('click', 'li', function() {
 /*---- HTML VIEW -----*/
 /*Isolated HTML view will surround the selected block with <pre><code contenteditable="true"> tags, but not widget blocks. The markup in widgets stays protected. contenteditable and the bbuilder-edit class will be stripped from the block's parent element. <pre><code> is stripped back out when focus leaves the block, and the contenteditable attribute is moved back to the block's parent element.
 
-Carrot characters (< >) get converted to <span class="ct">&lt;</span> and <span class="ct">&gt;</span> while in HTML view. New carrot characters that are typed or pasted in are also converted.  When returning to visual edit mode, those <span class="ct"> elements are convereted back to real carrot characters.
+carrot characters (< >) get converted to <span class="ct">&lt;</span> and <span class="ct">&gt;</span> while in HTML view. New carrot characters that are typed or pasted in are also converted.  When returning to visual edit mode, those <span class="ct"> elements are convereted back to real carrot characters.
 
 Similarly, special characters get converted to a full code visual: (e.g. &amp; becomes &amp;amp;). 
 
@@ -72,11 +139,4 @@ $('.view-source').click(function() {
 	prettyPrint();
 });
 
-$('.bbuilder-instance').on('click', 'ul', function() {
-	$(this).append('<div class="add-sibling">+</div>');
-});
 
-$('.bbuilder-instance').on('click', '.add-sibling', function(event) {
-	
-	alert('test');
-});

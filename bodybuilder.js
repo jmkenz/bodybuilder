@@ -1,14 +1,45 @@
-/*---- EDITABLE BLOCKS ----*/
+/*---- SELECTION / RANGE FUNCTIONS----*/
 
-/*Start with a single contenteditable p (editable block)*/
+/*Rangy Functions
+http://rangy.googlecode.com/svn/trunk/demos/core.html */
+ function getFirstRange() {
+    var sel = rangy.getSelection();
+    return sel.rangeCount ? sel.getRangeAt(0) : null;
+}
 
+function insertNodeAtRange(elType, elContent, cursorPosition) {
+    var range = getFirstRange();
+    if (range) {
+        if(elType) {
+            var el = document.createElement(elType);
+            if(elContent){
+                el.appendChild(document.createTextNode(elContent));
+            }
+        } else {
+            
+            if(elContent){
+                var el = document.createTextNode(elContent);
+            } else {
+                var el = document.createTextNode('-');
+            }
+        }
+        
+        range.insertNode(el);
+        rangy.getSelection().setSingleRange(range);
 
-/*Enter key creates a new editable block.  Each separate block has a .bbuilder-edit class */
-/*Shift+Enter creates a (visible) <br> element within current editable block*/
-
+        /*Move cursor to end of inserted node*/
+        if(cursorPosition == 'end') {
+            range.setStartAfter(el);
+            range.setEndAfter(el); 
+            sel = rangy.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        }
+    }
+}
 
 /* http://jsfiddle.net/timdown/jwvha/527/ */
-function pasteHtmlAtCaret(html) {
+function pasteHtmlAtCaret(html, selectPastedContent) {
     var sel, range;
     if (window.getSelection) {
         // IE9 and non-IE
@@ -22,18 +53,24 @@ function pasteHtmlAtCaret(html) {
             // some browsers (IE9, for one)
             var el = document.createElement("div");
             el.innerHTML = html;
-            var frag = document.createDocumentFragment(), node, lastNode;
+            var frag = document.createDocumentFragment(),
+                node,
+                lastNode;
             while ( (node = el.firstChild) ) {
                 lastNode = frag.appendChild(node);
             }
             var firstNode = frag.firstChild;
             range.insertNode(frag);
-
+            
             // Preserve the selection
             if (lastNode) {
                 range = range.cloneRange();
                 range.setStartAfter(lastNode);
-                range.collapse(true);
+                if (selectPastedContent) {
+                    range.setStartAfter(firstNode);
+                } else {
+                    range.collapse(true);
+                }
                 sel.removeAllRanges();
                 sel.addRange(range);
             }
@@ -43,8 +80,23 @@ function pasteHtmlAtCaret(html) {
         var originalRange = sel.createRange();
         originalRange.collapse(true);
         sel.createRange().pasteHTML(html);
+        if (selectPastedContent) {
+            range = sel.createRange();
+            range.setEndPoint("StartToStart", originalRange);
+            range.select();
+        }
     }
 }
+
+
+
+/*---- EDITABLE BLOCKS ----*/
+
+/*Start with a single contenteditable p (editable block)*/
+
+
+/*Enter key creates a new editable block.  Each separate block has a .bbuilder-edit class */
+/*Shift+Enter creates a (visible) <br> element within current editable block*/
 
 
 $('.bbuilder-content').on('keypress', '.bbuilder-edit', function(event) {
@@ -52,7 +104,15 @@ $('.bbuilder-content').on('keypress', '.bbuilder-edit', function(event) {
 	if (event.keyCode == 13 && event.shiftKey) {
 		/*Perhaps use https://code.google.com/p/rangy/ for this*/
 		event.preventDefault();
-		pasteHtmlAtCaret('<br><br>');
+		/*pasteHtmlAtCaret('<br>&nbsp;', false); /*Need a way to delete the &nbsp; we just inserted*/
+
+       
+        insertNodeAtRange(null, '\u00a0', 'start');
+        insertNodeAtRange('br', '', 'end');
+        
+
+        
+
 
 	} else if ( event.keyCode == 13 ) {
 		event.preventDefault();

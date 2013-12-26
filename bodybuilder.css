@@ -2,20 +2,13 @@
 	background: #fafafa;
 }
 
-ul.bbuilder-edit:focus {
-	padding-top: 30px;
-	padding-bottom: 30px;
-}
-
-ul.bbuilder-edit:focus li{
-	outline: 1px dashed blue;
-	margin-bottom: 8px;
-}
-
 .bbuilder-edit:focus {
-	padding: 3px;
+	padding: 5px;
+	margin-top: 5px;
+	margin-bottom: 5px;
 	background: #fafafa;
-	outline: 1px dashed orange;
+	outline: 1px solid #dcdcdc;
+	box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
 	cursor: text;
 }
 

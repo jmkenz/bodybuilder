@@ -372,13 +372,13 @@ $('.bbuilder-content').on('click', 'li', function() {
 */
 
 /*---- HTML VIEW -----*/
-/*Isolated HTML view will surround the selected block with <pre><code contenteditable="true"> tags, but not widget blocks. The markup in widgets stays protected. contenteditable and the bbuilder-edit class will be stripped from the block's parent element. <pre><code> is stripped back out when focus leaves the block, and the contenteditable attribute is moved back to the block's parent element.
+/*Isolated HTML view will surround the selected block with <code contenteditable="true"> tags, but not widget blocks. The markup in widgets stays protected. contenteditable and the bbuilder-edit class will be stripped from the block's parent element. <code> is stripped back out when focus leaves the block, and the contenteditable attribute is moved back to the block's parent element.
 
 carrot characters (< >) get converted to <span class="ct">&lt;</span> and <span class="ct">&gt;</span> while in HTML view. New carrot characters that are typed or pasted in are also converted.  When returning to visual edit mode, those <span class="ct"> elements are convereted back to real carrot characters.
 
 Similarly, special characters get converted to a full code visual: (e.g. &amp; becomes &amp;amp;). 
 
-Full HTML view strips all contenteditable attributes, and then wraps all editable blocks in <pre><code contenteditable="true" class="bbuilder-edit prettyprint lang-html"> and only strips them back out when Full HTML view is toggled off.  Again, widget blocks are excluded from this.
+Full HTML view strips all contenteditable attributes, and then wraps all editable blocks in <code contenteditable="true" class="bbuilder-edit prettyprint lang-html"> and only strips them back out when Full HTML view is toggled off.  Again, widget blocks are excluded from this.
 
 prettify.js is used to colorize the code. This will insert <span> tags throughout. These <spans> will need to be stripped out when exiting HTML view.
 
@@ -390,7 +390,7 @@ prettify.js is used to colorize the code. This will insert <span> tags throughou
 		
 		var htmlContent = $(this).clone().wrap('<p>').parent().html().replace(/</g, '&lt;').replace(/>/g, '&gt;').replace('contenteditable="true"', '').replace('contenteditable="false"', '');
 
-		$(this).replaceWith('<pre><code contenteditable="true" class="bbuilder-edit prettyprint lang-html">'+htmlContent+'</code></pre>');
+		$(this).replaceWith('<code contenteditable="true" class="bbuilder-edit prettyprint lang-html">'+htmlContent+'</code>');
 		
 	}; 
 })( jQuery );

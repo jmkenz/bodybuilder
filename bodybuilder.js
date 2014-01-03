@@ -38,7 +38,8 @@ function insertNodeAtRange(elType, elContent, cursorPosition) {
     }
 }
 
-/* http://jsfiddle.net/timdown/jwvha/527/ */
+/* Paste HTML at caret 
+http://jsfiddle.net/timdown/jwvha/527/ */
 function pasteHtmlAtCaret(html, selectPastedContent) {
     var sel, range;
     if (window.getSelection) {
@@ -89,6 +90,215 @@ function pasteHtmlAtCaret(html, selectPastedContent) {
 }
 
 
+/* Move cursor/caret between content editable areas using arrow keys
+Solution by Ryan King   --- can't currently handle <br> line breaks though.
+http://stackoverflow.com/questions/16194824/traversing-contenteditable-paragraphs-with-arrow-keys
+http://jsfiddle.net/zQUhV/47/
+*/
+		var setSelectionByCharacterOffsets = null;
+		// set cursor
+		if (window.getSelection && document.createRange) {
+			setSelectionByCharacterOffsets = function(containerEl, start, end) {
+				var charIndex = 0, range = document.createRange();
+				range.setStart(containerEl, 0);
+				range.collapse(true);
+				var nodeStack = [containerEl], node, foundStart = false, stop = false;
+
+				while (!stop && (node = nodeStack.pop())) {
+					if (node.nodeType == 3) {
+						var nextCharIndex = charIndex + node.length;
+						if (!foundStart && start >= charIndex && start <= nextCharIndex) {
+							range.setStart(node, start - charIndex);
+							foundStart = true;
+						}
+						if (foundStart && end >= charIndex && end <= nextCharIndex) {
+							range.setEnd(node, end - charIndex);
+							stop = true;
+						}
+						charIndex = nextCharIndex;
+					} else {
+						var i = node.childNodes.length;
+						while (i--) {
+							nodeStack.push(node.childNodes[i]);
+						}
+					}
+				}
+
+				var sel = window.getSelection();
+				sel.removeAllRanges();
+				sel.addRange(range);
+			}
+		} else if (document.selection) {
+			setSelectionByCharacterOffsets = function(containerEl, start, end) {
+				var textRange = document.body.createTextRange();
+				textRange.moveToElementText(containerEl);
+				textRange.collapse(true);
+				textRange.moveEnd("character", end);
+				textRange.moveStart("character", start);
+				textRange.select();
+			};
+		}
+
+		var setCaret = function(element, index) {
+			setSelectionByCharacterOffsets(element, index, index);
+		};
+
+		function cursorIndex() {
+			return window.getSelection().getRangeAt(0).startOffset;
+		}
+
+		// splits text into array of lines
+		(function($) {
+		$.fn.lines = function(){
+			words = this.text().split(" "); //split text into each word
+			lines = [];
+			
+			hiddenElement = this.clone(); //copies font settings and width
+			hiddenElement.empty();//clear text
+			hiddenElement.css("visibility", "hidden");
+			
+			jQuery('body').append(hiddenElement); // height doesn't exist until inserted into document
+			
+			hiddenElement.text('i'); //add character to get height
+			height = hiddenElement.height();
+			hiddenElement.empty();
+			
+			startIndex = -1; // quick fix for now - offset by one to get the line indexes working
+			jQuery.each(words, function() {
+			  lineText = hiddenElement.text(); // get text before new word appended
+			  hiddenElement.text(lineText + " " + this);
+				if(hiddenElement.height() > height) { // if new line
+					lines.push({text: lineText, startIndex: startIndex, endIndex: (lineText.length + startIndex)}); // push lineText not hiddenElement.text() other wise each line will have 1 word too many
+					startIndex = startIndex + lineText.length +1;
+					hiddenElement.text(this); //first word of the next line
+				}
+		   });
+			lines.push({text: hiddenElement.text(), startIndex: startIndex, endIndex: (hiddenElement.text().length + startIndex)}); // push last line
+			hiddenElement.remove();
+			lines[0].startIndex = 0; //quick fix for now - adjust first line index
+			return lines;
+		}
+		})(jQuery);
+
+		(function($) { // to save a bit of typing
+			$.fn.lastLine = function() {
+				return this.lines()[this.lines().length-1];
+			}
+		})(jQuery);
+
+		function findLineViaCaret(textElement,caretIndex){
+			jQuery.each(textElement.lines(), function() {
+				if(this.startIndex <= caretIndex && this.endIndex >= caretIndex) {
+					r = this;
+					return false; // exits loop
+				}
+		   });
+			return r;
+		}
+
+		function distanceToCaret(textElement,caretIndex){
+
+			line = findLineViaCaret(textElement,caretIndex);
+			if(line.startIndex == 0) { 
+			 // +1 needed for substring to be correct but only first line?
+				relativeIndex = caretIndex - line.startIndex +1;
+			} else {
+			  relativeIndex = caretIndex - line.startIndex;  
+			}
+			textToCaret = line.text.substring(0, relativeIndex);
+			
+			hiddenElement = textElement.clone(); //copies font settings and width
+			hiddenElement.empty();//clear text
+			hiddenElement.css("visibility", "hidden");
+			hiddenElement.css("width", "auto"); //so width can be measured
+			hiddenElement.css("display", "inline-block"); //so width can be measured
+
+			jQuery('body').append(hiddenElement); // doesn't exist until inserted into document
+			
+			hiddenElement.text(textToCaret); //add to get width
+			width = hiddenElement.width();
+			hiddenElement.remove();
+			
+			return width;
+		}
+
+		function getCaretViaWidth(textElement, lineNo, width) {
+			line = textElement.lines()[lineNo-1];
+			 
+			lineCharacters = line.text.replace(/^\s+|\s+$/g, '').split("");
+			
+			hiddenElement = textElement.clone(); //copies font settings and width
+			hiddenElement.empty();//clear text
+			hiddenElement.css("visibility", "hidden");
+			hiddenElement.css("width", "auto"); //so width can be measured
+			hiddenElement.css("display", "inline-block"); //so width can be measured
+			
+			jQuery('body').append(hiddenElement); // doesn't exist until inserted into document
+			
+			if(width == 0) { //if width is 0 index is at start
+				caretIndex = line.startIndex;
+			} else {// else loop through each character until width is reached
+				hiddenElement.empty();
+				jQuery.each(lineCharacters, function() {
+					text = hiddenElement.text();
+					prevWidth = hiddenElement.width();
+					hiddenElement.text(text + this);
+					elWidth = hiddenElement.width();
+					caretIndex = hiddenElement.text().length + line.startIndex;
+					if(hiddenElement.width() > width) {
+						// check whether character after width or before width is closest
+						if(Math.abs(width - prevWidth) < Math.abs(width - elWidth)) {
+						   caretIndex = caretIndex -1; // move index back one if previous is closes
+						}
+						return false;
+					}
+				});
+			}
+			hiddenElement.remove();
+			return caretIndex;
+		}
+
+		// arrow key conditions
+		$(document).on('keydown', '.bbuilder-edit', function(e) {
+			//if cursor on first line & up arrow key
+			if(e.which == 38 && (cursorIndex() < $(this).lines()[0].text.length)) { 
+				e.preventDefault();
+				if ($(this).prev().is('.bbuilder-edit')) {
+					prev = $(this).prev('.bbuilder-edit');
+					getDistanceToCaret = distanceToCaret($(this), cursorIndex());
+					lineNumber = prev.lines().length;
+					caretPosition = getCaretViaWidth(prev, lineNumber, getDistanceToCaret);
+					prev.focus();
+					setCaret(prev.get(0), caretPosition);
+				}
+			// if cursor on last line & down arrow
+			} else if(e.which == 40 && cursorIndex() >= $(this).lastLine().startIndex && cursorIndex() <= ($(this).lastLine().startIndex + $(this).lastLine().text.length)) {
+				e.preventDefault();
+				if ($(this).next().is('.bbuilder-edit')) {
+					next = $(this).next('.bbuilder-edit');
+					getDistanceToCaret = distanceToCaret($(this), cursorIndex());
+					caretPosition = getCaretViaWidth(next, 1, getDistanceToCaret);
+					next.focus();
+					setCaret(next.get(0), caretPosition);
+				}
+				//if start of paragraph and left arrow
+			} else if(e.which == 37 && cursorIndex() == 0) {
+				e.preventDefault();
+				if ($(this).prev().is('.bbuilder-edit')) {
+					prev = $(this).prev('.bbuilder-edit');
+					prev.focus();
+					setCaret(prev.get(0), prev.text().length); 
+				}
+				// if end of paragraph and right arrow
+			} else if(e.which == 39 && cursorIndex() == $(this).text().length) {
+				e.preventDefault();
+				if ($(this).next().is('.bbuilder-edit')) {
+					$(this).next('.bbuilder-edit').focus();
+				}
+			};
+		});
+
+
 
 /*---- EDITABLE BLOCKS ----*/
 
@@ -105,15 +315,10 @@ $('.bbuilder-content').on('keypress', '.bbuilder-edit', function(event) {
 		/*Perhaps use https://code.google.com/p/rangy/ for this*/
 		event.preventDefault();
 		/*pasteHtmlAtCaret('<br>&nbsp;', false); /*Need a way to delete the &nbsp; we just inserted*/
-
        
         insertNodeAtRange(null, '\u00a0', 'start');
         insertNodeAtRange('br', '', 'end');
         
-
-        
-
-
 	} else if ( event.keyCode == 13 ) {
 		event.preventDefault();
 		var $dupElem = $(this).clone();
@@ -122,8 +327,8 @@ $('.bbuilder-content').on('keypress', '.bbuilder-edit', function(event) {
 		$(this).next().click();
 	}
 
-
 });
+
 
 
 
@@ -178,8 +383,6 @@ Full HTML view strips all contenteditable attributes, and then wraps all editabl
 prettify.js is used to colorize the code. This will insert <span> tags throughout. These <spans> will need to be stripped out when exiting HTML view.
 
 */
-
-
 
 
 (function( $ ){

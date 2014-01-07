@@ -45,6 +45,7 @@ function cursorIndex() {
 
 function getContainer(node) {
     while (node) {
+        // Example block elements below, you may want to add more
         if (node.nodeType == 1) {
             return node;
         }
@@ -318,11 +319,10 @@ http://jsfiddle.net/zQUhV/47/
             var breakAbove = false,
                 breakBelow = false,
                 textBeforeCaret = extractContentsBeforeCaret(),
-                textAfterCaret = extractContentsAfterCaret(),
-                prev = null,
-                next = null;
+                textAfterCaret = extractContentsAfterCaret();
 
-            console.log(textAfterCaret);
+            console.log('before: ' + textBeforeCaret);
+            console.log('after: ' + textAfterCaret);
 
 
             if (textBeforeCaret.indexOf('<br') >= 0 || textAfterCaret.indexOf('<br') == 0) {  
@@ -333,29 +333,16 @@ http://jsfiddle.net/zQUhV/47/
                 breakBelow = true;
             }
 
-            console.log(breakBelow);
+            console.log('cursorIndex: ' + cursorIndex());
+            console.log('lastLine startIndex: ' + $(this).lastLine().startIndex);
+            console.log('lastLine text length: ' + $(this).lastLine().text.length);
 
 			//if cursor on first line & up arrow key
 			if(e.which == 38 && (cursorIndex() < $(this).lines()[0].text.length) && breakAbove !== true) { 
                 
 				e.preventDefault();
-				
-                if($(this).prev('.bbuilder-edit').length > 0) {
-                    prev =  $(this).prev('.bbuilder-edit');
-                }
-
-                if (prev == null) { //If not the previous sibling of current element, find next editable region up the line
-                    parents = $(this).parents();
-
-                    for (var i=0;i < parents.length;i++) {
-                        if($(parents[i]).prevAll('.bbuilder-edit').length > 0) {
-                            prev = $(parents[i]).prevAll('.bbuilder-edit').first();
-                             i = parents.length; //exit loop
-                        }
-                    }
-                }
-
-                if (prev) {
+				if ($(this).prev().is('.bbuilder-edit')) {
+					prev = $(this).prev('.bbuilder-edit');
 					getDistanceToCaret = distanceToCaret($(this), cursorIndex());
 					lineNumber = prev.lines().length;
 					caretPosition = getCaretViaWidth(prev, lineNumber, getDistanceToCaret);
@@ -364,10 +351,9 @@ http://jsfiddle.net/zQUhV/47/
 				}
 			// if cursor on last line & down arrow
 			} else if(e.which == 40 && cursorIndex() >= $(this).lastLine().startIndex && cursorIndex() <= ($(this).lastLine().startIndex + $(this).lastLine().text.length) && breakBelow !== true) {
-
 				e.preventDefault();
-				if ($(this).next('.bbuilder-edit').length > 0) {
-                    next = $(this).next('.bbuilder-edit').first();
+				if ($(this).next().is('.bbuilder-edit')) {
+					next = $(this).next('.bbuilder-edit');
 					getDistanceToCaret = distanceToCaret($(this), cursorIndex());
 					caretPosition = getCaretViaWidth(next, 1, getDistanceToCaret);
 					next.focus();
@@ -376,24 +362,8 @@ http://jsfiddle.net/zQUhV/47/
 				//if start of paragraph and left arrow
 			} else if(e.which == 37 && cursorIndex() == 0 && breakAbove !== true) {
 				e.preventDefault();
-
-                if($(this).prev('.bbuilder-edit').length > 0) {
-                    prev =  $(this).prev('.bbuilder-edit');
-                }
-
-                if (prev == null) { //If not the previous sibling of current element, find next editable region up the line
-                    parents = $(this).parents();
-
-                    for (var i=0;i < parents.length;i++) {
-                        if($(parents[i]).prevAll('.bbuilder-edit').length > 0) {
-                            prev = $(parents[i]).prevAll('.bbuilder-edit').first();
-                             i = parents.length; //exit loop
-                        }
-                    }
-                }
-               
-
-				if (prev) {
+				if ($(this).prev().is('.bbuilder-edit')) {
+					prev = $(this).prev('.bbuilder-edit');
 					prev.focus();
 					setCaret(prev.get(0), prev.text().length); 
 				}
@@ -420,8 +390,11 @@ http://jsfiddle.net/zQUhV/47/
 $('.bbuilder-content').on('keypress', '.bbuilder-edit', function(event) {
 	
 	if (event.keyCode == 13 && event.shiftKey) {
+		/*Perhaps use https://code.google.com/p/rangy/ for this*/
 		event.preventDefault();
-        //insertNodeAtRange(null, '\u00a0', 'start'); //Only needed if caret doesn't drop down to new line
+		/*pasteHtmlAtCaret('<br>&nbsp;', false); /*Need a way to delete the &nbsp; we just inserted*/
+       
+        insertNodeAtRange(null, '\u00a0', 'start');
         insertNodeAtRange('br', '', 'end');
         
 	} else if ( event.keyCode == 13 ) {
@@ -433,6 +406,11 @@ $('.bbuilder-content').on('keypress', '.bbuilder-edit', function(event) {
 	}
 
 });
+
+
+
+
+
 
 /*List items*/
 $('.bbuilder-content').on('click', 'li', function() {

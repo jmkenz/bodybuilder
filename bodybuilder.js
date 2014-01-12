@@ -200,7 +200,8 @@ http://jsfiddle.net/zQUhV/47/
 		(function($) {
 		$.fn.lines = function(){
 
-            words = this.html().split(" "); //split text into each word
+            rawText = this.html().replace('<br>', ' ').replace('<br />', ' ').replace('<br/>', ' ');
+            words = rawText.split(" "); //split text into each word
 			lines = [];
 			
 			hiddenElement = this.clone(); //copies font settings and width
@@ -322,8 +323,6 @@ http://jsfiddle.net/zQUhV/47/
                 prev = null,
                 next = null;
 
-            console.log(textAfterCaret);
-
 
             if (textBeforeCaret.indexOf('<br') >= 0 || textAfterCaret.indexOf('<br') == 0) {  
                 breakAbove = true;
@@ -333,7 +332,18 @@ http://jsfiddle.net/zQUhV/47/
                 breakBelow = true;
             }
 
-            console.log(breakBelow);
+
+            // Check to see if caret is on last line of an editable region containing <br> elements
+            range = rangy.getSelection().getRangeAt(0);
+            post_range = document.createRange();
+            post_range.selectNodeContents(this);
+            post_range.setStart(range.endContainer, range.endOffset);
+            next_text = post_range.cloneContents();
+            at_end = next_text.textContent.length === 0;
+
+            console.log(at_end);
+
+            
 
 			//if cursor on first line & up arrow key
 			if(e.which == 38 && (cursorIndex() < $(this).lines()[0].text.length) && breakAbove !== true) { 
@@ -342,6 +352,23 @@ http://jsfiddle.net/zQUhV/47/
 				
                 if($(this).prev('.bbuilder-edit').length > 0) {
                     prev =  $(this).prev('.bbuilder-edit');
+                }
+
+                if (prev == null) { //If can't find a direct sibling's children, find the previous siblings of the parents, and see if those elements have editable children
+                    parents = $(this).parents();
+
+                    for (var i=0;i < parents.length;i++) {
+                        uncles = parents.prevAll();
+                        for (var x=0;x < uncles.length;x++) {
+                            cousin = $(uncles[i]).find('.bbuilder-edit').last();
+                            if(cousin) {
+                                prev = cousin;
+                                x = uncles.length; //exit loop
+                                i = parents.length; //exit loop
+                            }
+                            
+                        }
+                    }
                 }
 
                 if (prev == null) { //If not the previous sibling of current element, find next editable region up the line
@@ -363,17 +390,50 @@ http://jsfiddle.net/zQUhV/47/
 					setCaret(prev.get(0), caretPosition);
 				}
 			// if cursor on last line & down arrow
-			} else if(e.which == 40 && cursorIndex() >= $(this).lastLine().startIndex && cursorIndex() <= ($(this).lastLine().startIndex + $(this).lastLine().text.length) && breakBelow !== true) {
+			} else if(e.which == 40 && ((cursorIndex() >= $(this).lastLine().startIndex && cursorIndex() <= ($(this).lastLine().startIndex + $(this).lastLine().text.length) && breakBelow !== true) || at_end == true)) {
 
 				e.preventDefault();
-				if ($(this).next('.bbuilder-edit').length > 0) {
-                    next = $(this).next('.bbuilder-edit').first();
+
+                if($(this).next('.bbuilder-edit').length > 0) {
+                    next =  $(this).next('.bbuilder-edit');
+                }
+
+                if (next == null) { //If not the next sibling of current element, find next editable region down the line
+                    nextSiblings = $(this).nextAll();
+
+                    for (var i=0;i < nextSiblings.length;i++) {
+                        if($(nextSiblings[i]).find('.bbuilder-edit').length > 0) {
+                            next = $(nextSiblings[i]).find('.bbuilder-edit').first();
+                             i = nextSiblings.length; //exit loop
+                        }
+                    }
+                }
+
+                if (next == null) { //If can't find a direct sibling's children, find the next siblings of the parents, and see if those elements have editable children
+                    parents = $(this).parents();
+
+                    for (var i=0;i < parents.length;i++) {
+                        uncles = parents.nextAll();
+                        for (var x=0;x < uncles.length;x++) {
+                            cousin = $(uncles[i]).find('.bbuilder-edit').first();
+                            if(cousin) {
+                                next = cousin;
+                                x = uncles.length; //exit loop
+                                i = parents.length; //exit loop
+                            }
+                            
+                        }
+                    }
+                }
+
+				if (next) {
 					getDistanceToCaret = distanceToCaret($(this), cursorIndex());
 					caretPosition = getCaretViaWidth(next, 1, getDistanceToCaret);
 					next.focus();
 					setCaret(next.get(0), caretPosition);
 				}
-				//if start of paragraph and left arrow
+
+			//if start of paragraph and left arrow
 			} else if(e.which == 37 && cursorIndex() == 0 && breakAbove !== true) {
 				e.preventDefault();
 

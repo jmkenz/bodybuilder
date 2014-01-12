@@ -1,3 +1,59 @@
+/*BodyBuilder.js 0.03
+What You See Is What You Mean Rich Text Editor
+James McKenzie
+github.com/jmkenz/bodybuilder
+*/
+
+/* INITIALIZE INSTANCES*/
+
+/*Define toolbar*/
+var btnTogSource = '<button class="tog-source">Toggle HTML</button>',
+    btnIndentRight = '<button class="indent-right">Indent Right</button>';
+    bbuilderToolbar = '<div class="bbuilder-toolbar">'
+                        + btnTogSource
+                        + btnIndentRight
+                        + '</div>';
+
+/*Initialize all instances*/
+$('.bbuilder-instance').each(function() {
+    $(this).prepend(bbuilderToolbar);
+
+    /*Enable contenteditable*/
+    $(this).find('.bbe').each(function() {
+        $(this).attr('contenteditable', 'true');
+    });
+
+});
+
+
+$('.tog-source').click(function() {
+    
+    contentArea = $(this).parent('.bbuilder-toolbar').siblings('.bbuilder-content').first();
+
+    contentArea.children().not('.bbwidget').each(function(){
+        $(this).toggleSource(contentArea);
+    });
+
+    contentArea.toggleClass('html-view');
+   
+   if(contentArea.hasClass('html-view')) {
+     prettyPrint();
+   } else {
+    contentArea.find('.bbe').each(function(){
+        $(this).attr('contenteditable', 'true');
+    });
+   }
+});
+
+$('.indent-right').click(function(){
+
+
+    insertNodeAtRange('', '\t', 'end');
+});
+
+
+
+
 /*---- SELECTION / RANGE FUNCTIONS----*/
 
 /*Rangy Functions
@@ -312,7 +368,7 @@ http://jsfiddle.net/zQUhV/47/
 		}
 
 		// arrow key conditions
-		$(document).on('keydown', '.bbuilder-edit', function(e) {
+		$(document).on('keydown', '.bbe', function(e) {
 
             // If edit area contains <br> element somewhere before or after the cursorIndex, then allow default key behavior within the contenteditable area
 
@@ -332,26 +388,21 @@ http://jsfiddle.net/zQUhV/47/
                 breakBelow = true;
             }
 
-
             // Check to see if caret is on last line of an editable region containing <br> elements
             range = rangy.getSelection().getRangeAt(0);
             post_range = document.createRange();
             post_range.selectNodeContents(this);
             post_range.setStart(range.endContainer, range.endOffset);
             next_text = post_range.cloneContents();
-            at_end = next_text.textContent.length === 0;
-
-            console.log(at_end);
-
-            
+            at_end = next_text.textContent.length === 0;    
 
 			//if cursor on first line & up arrow key
 			if(e.which == 38 && (cursorIndex() < $(this).lines()[0].text.length) && breakAbove !== true) { 
                 
 				e.preventDefault();
 				
-                if($(this).prev('.bbuilder-edit').length > 0) {
-                    prev =  $(this).prev('.bbuilder-edit');
+                if($(this).prev('.bbe').length > 0) {
+                    prev =  $(this).prev('.bbe');
                 }
 
                 if (prev == null) { //If can't find a direct sibling's children, find the previous siblings of the parents, and see if those elements have editable children
@@ -360,7 +411,7 @@ http://jsfiddle.net/zQUhV/47/
                     for (var i=0;i < parents.length;i++) {
                         uncles = parents.prevAll();
                         for (var x=0;x < uncles.length;x++) {
-                            cousin = $(uncles[i]).find('.bbuilder-edit').last();
+                            cousin = $(uncles[i]).find('.bbe').last();
                             if(cousin) {
                                 prev = cousin;
                                 x = uncles.length; //exit loop
@@ -375,8 +426,8 @@ http://jsfiddle.net/zQUhV/47/
                     parents = $(this).parents();
 
                     for (var i=0;i < parents.length;i++) {
-                        if($(parents[i]).prevAll('.bbuilder-edit').length > 0) {
-                            prev = $(parents[i]).prevAll('.bbuilder-edit').first();
+                        if($(parents[i]).prevAll('.bbe').length > 0) {
+                            prev = $(parents[i]).prevAll('.bbe').first();
                              i = parents.length; //exit loop
                         }
                     }
@@ -394,16 +445,16 @@ http://jsfiddle.net/zQUhV/47/
 
 				e.preventDefault();
 
-                if($(this).next('.bbuilder-edit').length > 0) {
-                    next =  $(this).next('.bbuilder-edit');
+                if($(this).next('.bbe').length > 0) {
+                    next =  $(this).next('.bbe');
                 }
 
                 if (next == null) { //If not the next sibling of current element, find next editable region down the line
                     nextSiblings = $(this).nextAll();
 
                     for (var i=0;i < nextSiblings.length;i++) {
-                        if($(nextSiblings[i]).find('.bbuilder-edit').length > 0) {
-                            next = $(nextSiblings[i]).find('.bbuilder-edit').first();
+                        if($(nextSiblings[i]).find('.bbe').length > 0) {
+                            next = $(nextSiblings[i]).find('.bbe').first();
                              i = nextSiblings.length; //exit loop
                         }
                     }
@@ -415,7 +466,7 @@ http://jsfiddle.net/zQUhV/47/
                     for (var i=0;i < parents.length;i++) {
                         uncles = parents.nextAll();
                         for (var x=0;x < uncles.length;x++) {
-                            cousin = $(uncles[i]).find('.bbuilder-edit').first();
+                            cousin = $(uncles[i]).find('.bbe').first();
                             if(cousin) {
                                 next = cousin;
                                 x = uncles.length; //exit loop
@@ -437,16 +488,16 @@ http://jsfiddle.net/zQUhV/47/
 			} else if(e.which == 37 && cursorIndex() == 0 && breakAbove !== true) {
 				e.preventDefault();
 
-                if($(this).prev('.bbuilder-edit').length > 0) {
-                    prev =  $(this).prev('.bbuilder-edit');
+                if($(this).prev('.bbe').length > 0) {
+                    prev =  $(this).prev('.bbe');
                 }
 
                 if (prev == null) { //If not the previous sibling of current element, find next editable region up the line
                     parents = $(this).parents();
 
                     for (var i=0;i < parents.length;i++) {
-                        if($(parents[i]).prevAll('.bbuilder-edit').length > 0) {
-                            prev = $(parents[i]).prevAll('.bbuilder-edit').first();
+                        if($(parents[i]).prevAll('.bbe').length > 0) {
+                            prev = $(parents[i]).prevAll('.bbe').first();
                              i = parents.length; //exit loop
                         }
                     }
@@ -460,8 +511,8 @@ http://jsfiddle.net/zQUhV/47/
 				// if end of paragraph and right arrow
 			} else if(e.which == 39 && cursorIndex() == $(this).text().length && breakBelow !== true) {
 				e.preventDefault();
-				if ($(this).next().is('.bbuilder-edit')) {
-					$(this).next('.bbuilder-edit').focus();
+				if ($(this).next().is('.bbe')) {
+					$(this).next('.bbe').focus();
 				}
 			};
 		});
@@ -473,24 +524,39 @@ http://jsfiddle.net/zQUhV/47/
 /*Start with a single contenteditable p (editable block)*/
 
 
-/*Enter key creates a new editable block.  Each separate block has a .bbuilder-edit class */
+/* .bbe elements that receive focus get a .bbfocused class. */
+
+$('.bbuilder-content').on('focus', '.bbe', function(event) {
+
+    $('.bbfocused').each(function() {
+        $(this).removeClass('bbfocused');
+    });
+    $(this).addClass('bbfocused');
+});
+
+/*Enter key creates a new editable block.  Each separate block has a .bbe class */
 /*Shift+Enter creates a (visible) <br> element within current editable block*/
 
 
-$('.bbuilder-content').on('keypress', '.bbuilder-edit', function(event) {
+$('.bbuilder-content').on('keypress', '.bbe', function(event) {
 	
-	if (event.keyCode == 13 && event.shiftKey) {
-		event.preventDefault();
-        //insertNodeAtRange(null, '\u00a0', 'start'); //Only needed if caret doesn't drop down to new line
-        insertNodeAtRange('br', '', 'end');
-        
-	} else if ( event.keyCode == 13 ) {
-		event.preventDefault();
-		var $dupElem = $(this).clone();
-		$dupElem.empty();
-		$(this).after($dupElem);
-		$(this).next().click();
-	}
+	
+    if(!$(this).hasClass('prettyprint')) { //No change to default key behaviour while in HTML view
+        if (event.keyCode == 13 && event.shiftKey) {
+    		event.preventDefault();
+            //insertNodeAtRange(null, '\u00a0', 'start'); //Only needed if caret doesn't drop down to new line. CSS on the <br> ensures that it does.
+            insertNodeAtRange('br', '', 'end');
+            
+    	} else if ( event.keyCode == 13 ) {
+    		event.preventDefault();
+    		var $dupElem = $(this).clone();
+    		$dupElem.empty();
+    		$(this).after($dupElem);
+    		$(this).next().click();
+    	}
+    }
+
+
 
 });
 
@@ -499,7 +565,6 @@ $('.bbuilder-content').on('click', 'li', function() {
 	$(this).parent('ul').attr('contenteditable', 'false');
 	$(this).attr('contenteditable', 'true').focus();
 });
-
 
 
 
@@ -514,31 +579,33 @@ $('.bbuilder-content').on('click', 'li', function() {
 
 /*---- WIDGETS -----*/
 
-/*Widget blocks get a .bbuilder-widget class, which don't become contenteditable areas. They also get a data-attribute specifying the name of the widget template xml file */
+/*Widget blocks get a .bbwidget class, which don't become contenteditable areas. They also get a data-attribute specifying the name of the widget template xml file */
 
 
 /*---- SAVING THE CONTENT TO A DATABASE -----*/
-/*Upon form entry, takes each editable block, removes the .bbuilder-edit class, plus the markup for each widget (which retain the .bbuilder-widget class on the parent, and the data-attributes on each piece of user-specified content), and then combines them all into a textarea input field for submission.*/
+/*Upon form entry, takes each editable block, removes the .bbe class, plus the markup for each widget (which retain the .bbuilder-widget class on the parent, and the data-attributes on each piece of user-specified content), and then combines them all into a textarea input field for submission.*/
 
 
 /*---- EDITING EXISTING CONTENT -----*/
 
 /*Parsing the raw HTML back into the editing mode
-	-Block-level HTML elements are given the .bbuilder-edit class and get the contenteditable property
+	-Block-level HTML elements are given the .bbe class and get the contenteditable property
 	.bbuilder-widget elements output their HTML but don't get the contenteditable property. Each element that contains user-specified values has a unique data-field-type value
 	 that tells the widget's modal window to populate the appropriate input field with the right value.
 
 		An element who's data-field-type is set to a nested rich text area only becomes contenteditable when viewed in the modal window.
 */
 
+
+
 /*---- HTML VIEW -----*/
-/*Isolated HTML view will surround the selected block with <code contenteditable="true"> tags, but not widget blocks. The markup in widgets stays protected. contenteditable and the bbuilder-edit class will be stripped from the block's parent element. <code> is stripped back out when focus leaves the block, and the contenteditable attribute is moved back to the block's parent element.
+/*Isolated HTML view will surround the selected block with <code contenteditable="true"> tags, but not widget blocks. The markup in widgets stays protected. contenteditable and the bbe class will be stripped from the block's parent element. <code> is stripped back out when focus leaves the block, and the contenteditable attribute is moved back to the block's parent element.
 
 carrot characters (< >) get converted to <span class="ct">&lt;</span> and <span class="ct">&gt;</span> while in HTML view. New carrot characters that are typed or pasted in are also converted.  When returning to visual edit mode, those <span class="ct"> elements are convereted back to real carrot characters.
 
 Similarly, special characters get converted to a full code visual: (e.g. &amp; becomes &amp;amp;). 
 
-Full HTML view strips all contenteditable attributes, and then wraps all editable blocks in <code contenteditable="true" class="bbuilder-edit prettyprint lang-html"> and only strips them back out when Full HTML view is toggled off.  Again, widget blocks are excluded from this.
+Full HTML view strips all contenteditable attributes, and then wraps all editable blocks in <code contenteditable="true" class="bbe prettyprint lang-html"> and only strips them back out when Full HTML view is toggled off.  Again, widget blocks are excluded from this.
 
 prettify.js is used to colorize the code. This will insert <span> tags throughout. These <spans> will need to be stripped out when exiting HTML view.
 
@@ -546,20 +613,30 @@ prettify.js is used to colorize the code. This will insert <span> tags throughou
 
 
 (function( $ ){
-	$.fn.viewSource = function() {
+	$.fn.toggleSource = function(contentArea) {
 		
-		var htmlContent = $(this).clone().wrap('<p>').parent().html().replace(/</g, '&lt;').replace(/>/g, '&gt;').replace('contenteditable="true"', '').replace('contenteditable="false"', '');
+		if(contentArea.hasClass('html-view')) {
+            
 
-		$(this).replaceWith('<code contenteditable="true" class="bbuilder-edit prettyprint lang-html">'+htmlContent+'</code>');
+            var richContent = $(this).text().replace('&lt;', '<').replace('&gt;', '>');
+
+            $(this).replaceWith(richContent);
+
+        } else {
+          
+          $(this).removeAttr('contenteditable');
+          $(this).find('.bbe').each(function(){
+            $(this).removeAttr('contenteditable').removeClass('bbfocused');
+          });
+
+          var htmlContent = $(this).clone().wrap('<p>').parent().html().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+		  $(this).replaceWith('<code contenteditable="true" class="bbe prettyprint lang-html">'+htmlContent+'</code>');
+        }
 		
 	}; 
 })( jQuery );
 
-$('.view-source').click(function() {
-	$(this).siblings('.bbuilder-content').first().find('.bbuilder-edit').each(function(){
-		$(this).viewSource();
-	});
-	prettyPrint();
-});
+
 
 

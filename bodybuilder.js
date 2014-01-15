@@ -567,7 +567,7 @@ $('.bbuilder-content').on('focus', '.bbe', function(event) {
 $('.bbuilder-content').on('keypress', '.bbe', function(event) {
 	
 	
-    if(!$(this).hasClass('prettyprint')) { //No change to default key behaviour while in HTML view
+    if(!$(this).hasClass('prettyprint')) { //Use default key behaviour in HTML view, but customize it for Design view
         if (event.keyCode == 13 && event.shiftKey) {
     		event.preventDefault();
             //insertNodeAtRange(null, '\u00a0', 'start'); //Only needed if caret doesn't drop down to new line. CSS on the <br> ensures that it does.
@@ -575,22 +575,18 @@ $('.bbuilder-content').on('keypress', '.bbe', function(event) {
             
     	} else if ( event.keyCode == 13 ) {
     		event.preventDefault();
-    		var $dupElem = $(this).clone();
+    		
+            //Create an empty duplicate of currently focused element, and move focus to the new element
+            var $dupElem = $(this).clone();
     		$dupElem.empty();
     		$(this).after($dupElem);
-    		$(this).next().click();
+    		$(this).next().attr('contenteditable', 'true').focus();
     	}
     }
 
-
-
 });
 
-/*List items*/
-$('.bbuilder-content').on('click', 'li', function() {
-	$(this).parent('ul').attr('contenteditable', 'false');
-	$(this).attr('contenteditable', 'true').focus();
-});
+
 
 
 

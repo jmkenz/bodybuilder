@@ -8,7 +8,7 @@ github.com/jmkenz/bodybuilder
 
 /*Define toolbar*/
 var btnTogSource = '<button class="tog-source">Toggle HTML</button>',
-    btnIndentRight = '<button class="indent-right">Indent Right</button>';
+    btnIndentRight = '<button class="indent-right html-tool">Indent Right</button>';
     bbuilderToolbar = '<div class="bbuilder-toolbar">'
                         + btnTogSource
                         + btnIndentRight
@@ -28,12 +28,14 @@ $('.bbuilder-instance').each(function() {
 
 $('.tog-source').click(function() {
     
-    contentArea = $(this).parent('.bbuilder-toolbar').siblings('.bbuilder-content').first();
+    var toolbarEl = $(this).parent('.bbuilder-toolbar'),
+        contentArea = toolbarEl.siblings('.bbuilder-content').first();
 
     contentArea.children().not('.bbwidget').each(function(){
         $(this).toggleSource(contentArea);
     });
 
+    toolbarEl.toggleClass('html-toolbar');
     contentArea.toggleClass('html-view');
    
    if(contentArea.hasClass('html-view')) {
@@ -199,7 +201,7 @@ function pasteHtmlAtCaret(html, selectPastedContent) {
 
 
 /* Move cursor/caret between content editable areas using arrow keys
-Solution by Ryan King   --- can't currently handle <br> line breaks though.
+Solution by Ryan King   --- Modified by James McKenzie to support <br> elements, and moving to uncles, nephews, and cousins
 http://stackoverflow.com/questions/16194824/traversing-contenteditable-paragraphs-with-arrow-keys
 http://jsfiddle.net/zQUhV/47/
 */
@@ -367,6 +369,130 @@ http://jsfiddle.net/zQUhV/47/
 			return caretIndex;
 		}
 
+        function goNextArea(current) {
+            var next = null,
+                nextSiblings = current.nextAll();
+
+            if(nextSiblings.length > 0) {
+                for (var i=0;i < nextSiblings.length;i++) {
+                   
+                    var self = $(nextSiblings[i]);
+                    if(self.hasClass('bbe')){
+                        next = self;
+                        console.log('sibling');
+                        i = nextSiblings.length; //exit loop
+                    } else { //Search for nephews
+                        var nephew = self.find('.bbe').first();
+                        if(nephew.length > 0) {
+                            console.log('nephew');
+                            next = nephew;
+                            i = nextSiblings.length; //exit loop
+                        }
+                    }
+                }
+
+            } else { //if have no next siblings, go up to parent and look for uncles and cousins
+                var parents = current.parents();
+
+                for (var i=0;i < parents.length;i++) {
+                    var uncles = parents.nextAll();
+                    for (var x=0;x < uncles.length;x++) {
+                        var uncle = $(uncles[i]);
+                        if(uncle.hasClass('bbe')){
+                            console.log('uncle');
+                            next = uncle;
+                            x = uncles.length; //exit loop
+                            i = parents.length; //exit loop
+                        } else { //Search for cousins
+                            var cousin = uncle.find('.bbe').first();
+                            if(cousin.length > 0) {
+                                console.log('cousin');
+                                next = cousin;
+                                x = uncles.length; //exit loop
+                                i = parents.length; //exit loop
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (next) {
+                if(next.hasClass('bbe')){
+                    getDistanceToCaret = distanceToCaret(current, cursorIndex());
+                    caretPosition = getCaretViaWidth(next, 1, getDistanceToCaret);
+                    next.focus();
+                    setCaret(next.get(0), caretPosition);
+                }
+            } else {
+                console.log('Nowhere to go');
+            }
+        }
+
+        function goPrevArea(current, leftArrow) {
+            var prev = null,
+                prevSiblings = current.prevAll();
+
+            if(prevSiblings.length > 0) {
+                for (var i=0;i < prevSiblings.length;i++) {
+                   
+                    var self = $(prevSiblings[i]);
+                    if(self.hasClass('bbe')){
+                        prev = self;
+                        console.log('sibling');
+                        i = prevSiblings.length; //exit loop
+                    } else { //Search for nephews
+                        var nephew = self.find('.bbe').last();
+                        if(nephew.length > 0) {
+                            console.log('nephew');
+                            prev = nephew;
+                            i = prevSiblings.length; //exit loop
+                        }
+                    }
+                }
+
+            } else { //if have no next siblings, go up to parent and look for uncles and cousins
+                var parents = current.parents();
+
+                for (var i=0;i < parents.length;i++) {
+                    var uncles = parents.prevAll();
+                    for (var x=0;x < uncles.length;x++) {
+                        var uncle = $(uncles[i]);
+                        if(uncle.hasClass('bbe')){
+                            console.log('uncle');
+                            prev = uncle;
+                            x = uncles.length; //exit loop
+                            i = parents.length; //exit loop
+                        } else { //Search for cousins
+                            var cousin = uncle.find('.bbe').last();
+                            if(cousin.length > 0) {
+                                console.log('cousin');
+                                prev = cousin;
+                                x = uncles.length; //exit loop
+                                i = parents.length; //exit loop
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (prev) {
+                if(prev.hasClass('bbe')){
+                    if (leftArrow) {
+                        prev.focus();
+                        setCaret(prev.get(0), prev.text().length); 
+                    } else {
+                        getDistanceToCaret = distanceToCaret(current, cursorIndex());
+                        lineNumber = prev.lines().length;
+                        caretPosition = getCaretViaWidth(prev, lineNumber, getDistanceToCaret);
+                        prev.focus();
+                        setCaret(prev.get(0), caretPosition);
+                    }
+                }
+            } else {
+                console.log('Nowhere to go');
+            }
+        }
+
 		// arrow key conditions
 		$(document).on('keydown', '.bbe', function(e) {
 
@@ -376,8 +502,7 @@ http://jsfiddle.net/zQUhV/47/
                 breakBelow = false,
                 textBeforeCaret = extractContentsBeforeCaret(),
                 textAfterCaret = extractContentsAfterCaret(),
-                prev = null,
-                next = null;
+                current = $(this);
 
 
             if (textBeforeCaret.indexOf('<br') >= 0 || textAfterCaret.indexOf('<br') == 0) {  
@@ -397,123 +522,24 @@ http://jsfiddle.net/zQUhV/47/
             at_end = next_text.textContent.length === 0;    
 
 			//if cursor on first line & up arrow key
-			if(e.which == 38 && (cursorIndex() < $(this).lines()[0].text.length) && breakAbove !== true) { 
-                
+			if(e.which == 38 && (cursorIndex() < $(this).lines()[0].text.length) && breakAbove !== true) {    
 				e.preventDefault();
-				
-                if($(this).prev('.bbe').length > 0) {
-                    prev =  $(this).prev('.bbe');
-                }
+				goPrevArea(current, true);
 
-                if (prev == null) { //If can't find a direct sibling's children, find the previous siblings of the parents, and see if those elements have editable children
-                    parents = $(this).parents();
-
-                    for (var i=0;i < parents.length;i++) {
-                        uncles = parents.prevAll();
-                        for (var x=0;x < uncles.length;x++) {
-                            cousin = $(uncles[i]).find('.bbe').last();
-                            if(cousin) {
-                                prev = cousin;
-                                x = uncles.length; //exit loop
-                                i = parents.length; //exit loop
-                            }
-                            
-                        }
-                    }
-                }
-
-                if (prev == null) { //If not the previous sibling of current element, find next editable region up the line
-                    parents = $(this).parents();
-
-                    for (var i=0;i < parents.length;i++) {
-                        if($(parents[i]).prevAll('.bbe').length > 0) {
-                            prev = $(parents[i]).prevAll('.bbe').first();
-                             i = parents.length; //exit loop
-                        }
-                    }
-                }
-
-                if (prev) {
-					getDistanceToCaret = distanceToCaret($(this), cursorIndex());
-					lineNumber = prev.lines().length;
-					caretPosition = getCaretViaWidth(prev, lineNumber, getDistanceToCaret);
-					prev.focus();
-					setCaret(prev.get(0), caretPosition);
-				}
 			// if cursor on last line & down arrow
 			} else if(e.which == 40 && ((cursorIndex() >= $(this).lastLine().startIndex && cursorIndex() <= ($(this).lastLine().startIndex + $(this).lastLine().text.length) && breakBelow !== true) || at_end == true)) {
-
 				e.preventDefault();
-
-                if($(this).next('.bbe').length > 0) {
-                    next =  $(this).next('.bbe');
-                }
-
-                if (next == null) { //If not the next sibling of current element, find next editable region down the line
-                    nextSiblings = $(this).nextAll();
-
-                    for (var i=0;i < nextSiblings.length;i++) {
-                        if($(nextSiblings[i]).find('.bbe').length > 0) {
-                            next = $(nextSiblings[i]).find('.bbe').first();
-                             i = nextSiblings.length; //exit loop
-                        }
-                    }
-                }
-
-                if (next == null) { //If can't find a direct sibling's children, find the next siblings of the parents, and see if those elements have editable children
-                    parents = $(this).parents();
-
-                    for (var i=0;i < parents.length;i++) {
-                        uncles = parents.nextAll();
-                        for (var x=0;x < uncles.length;x++) {
-                            cousin = $(uncles[i]).find('.bbe').first();
-                            if(cousin) {
-                                next = cousin;
-                                x = uncles.length; //exit loop
-                                i = parents.length; //exit loop
-                            }
-                            
-                        }
-                    }
-                }
-
-				if (next) {
-					getDistanceToCaret = distanceToCaret($(this), cursorIndex());
-					caretPosition = getCaretViaWidth(next, 1, getDistanceToCaret);
-					next.focus();
-					setCaret(next.get(0), caretPosition);
-				}
+                goNextArea(current);
 
 			//if start of paragraph and left arrow
 			} else if(e.which == 37 && cursorIndex() == 0 && breakAbove !== true) {
 				e.preventDefault();
+                goPrevArea(current, true);
 
-                if($(this).prev('.bbe').length > 0) {
-                    prev =  $(this).prev('.bbe');
-                }
-
-                if (prev == null) { //If not the previous sibling of current element, find next editable region up the line
-                    parents = $(this).parents();
-
-                    for (var i=0;i < parents.length;i++) {
-                        if($(parents[i]).prevAll('.bbe').length > 0) {
-                            prev = $(parents[i]).prevAll('.bbe').first();
-                             i = parents.length; //exit loop
-                        }
-                    }
-                }
-               
-
-				if (prev) {
-					prev.focus();
-					setCaret(prev.get(0), prev.text().length); 
-				}
-				// if end of paragraph and right arrow
+			// if end of paragraph and right arrow
 			} else if(e.which == 39 && cursorIndex() == $(this).text().length && breakBelow !== true) {
 				e.preventDefault();
-				if ($(this).next().is('.bbe')) {
-					$(this).next('.bbe').focus();
-				}
+				goNextArea(current);
 			};
 		});
 

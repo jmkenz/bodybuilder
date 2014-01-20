@@ -1,10 +1,5 @@
-.bbuilder-instance .bbe{
-	
-	-webkit-transition: padding .1s, border .1s, box-shadow .1s;
-	-moz-transition: padding .1s, border .1s, box-shadow .1s;
-	-ms-transition: padding .1s, border .1s, box-shadow .1s;
-	-o-transition: padding .1s, border .1s, box-shadow .1s;
-	transition: padding .1s, border .1s, box-shadow .1s;
+.bbuilder-instance .bbe {
+	transition-delay: 0.1s;
 }
 
 .bbuilder-instance .bbe:hover {
@@ -16,7 +11,6 @@
 	margin-top: 5px;
 	margin-bottom: 5px;
 	background: #fafafa;
-	border: 1px solid #dcdcdc;
 	outline: none;
 	box-shadow: 0 3px 5px 0 rgba(0,0,0,0.2);
 	cursor: text;

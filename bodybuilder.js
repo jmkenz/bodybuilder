@@ -560,8 +560,7 @@ $('.bbuilder-content').on('focus', '.bbe', function(event) {
 
 /* .bbe elements that lose focus lose .bbfocused class. */
 
-$('.bbuilder-content').on('blur', '.bbe', function(event) {
-        
+$('.bbuilder-content').on('blur', '.bbe', function(event) {   
     $(this).removeClass('bbfocused');
 });
 

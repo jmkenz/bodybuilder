@@ -554,10 +554,15 @@ http://jsfiddle.net/zQUhV/47/
 
 $('.bbuilder-content').on('focus', '.bbe', function(event) {
 
-    $('.bbfocused').each(function() {
-        $(this).removeClass('bbfocused');
-    });
     $(this).addClass('bbfocused');
+});
+
+
+/* .bbe elements that lose focus lose .bbfocused class. */
+
+$('.bbuilder-content').on('blur', '.bbe', function(event) {
+        
+    $(this).removeClass('bbfocused');
 });
 
 /*Enter key creates a new editable block.  Each separate block has a .bbe class */

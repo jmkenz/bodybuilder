@@ -560,6 +560,7 @@ $('.bbuilder-content').on('focus', '.bbe', function(event) {
     $(this).addClass('bbfocused');
 });
 
+
 /*Enter key creates a new editable block.  Each separate block has a .bbe class */
 /*Shift+Enter creates a (visible) <br> element within current editable block*/
 

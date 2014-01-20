@@ -1,3 +1,12 @@
+.bbuilder-instance .bbe{
+	
+	-webkit-transition: padding .2s, border .2s, box-shadow .2s;
+	-moz-transition: padding .2s, border .2s, box-shadow .2s;
+	-ms-transition: padding .2s, border .2s, box-shadow .2s;
+	-o-transition: padding .2s, border .2s, box-shadow .2s;
+	transition: padding .2s, border .2s, box-shadow .2s;
+}
+
 .bbuilder-instance .bbe:hover {
 	background: #f2f2f2;
 }

@@ -4,6 +4,9 @@ James McKenzie
 github.com/jmkenz/bodybuilder
 */
 
+/*Create BodyBuilder namespace*/
+var BB = {};
+
 /* INITIALIZE INSTANCES*/
 
 /*Define toolbar*/
@@ -54,7 +57,16 @@ $('.indent-right').click(function(){
 });
 
 
+/*---- GENERAL KEYBOARD SHORTCUTS----*/
+$(document).keyup(function(event) {
+  var keyPressed = event.keyCode;
 
+  switch(keyPressed) {
+    case 27:
+        BB.focusedEl.blur().removeClass('bbfocused');
+        break;
+  }
+});
 
 /*---- SELECTION / RANGE FUNCTIONS----*/
 
@@ -205,343 +217,389 @@ Solution by Ryan King   --- Modified by James McKenzie to support <br> elements,
 http://stackoverflow.com/questions/16194824/traversing-contenteditable-paragraphs-with-arrow-keys
 http://jsfiddle.net/zQUhV/47/
 */
-		var setSelectionByCharacterOffsets = null;
-		// set cursor
-		if (window.getSelection && document.createRange) {
-			setSelectionByCharacterOffsets = function(containerEl, start, end) {
-				var charIndex = 0, range = document.createRange();
-				range.setStart(containerEl, 0);
-				range.collapse(true);
-				var nodeStack = [containerEl], node, foundStart = false, stop = false;
+var setSelectionByCharacterOffsets = null;
+// set cursor
+if (window.getSelection && document.createRange) {
+	setSelectionByCharacterOffsets = function(containerEl, start, end) {
+		var charIndex = 0, range = document.createRange();
+		range.setStart(containerEl, 0);
+		range.collapse(true);
+		var nodeStack = [containerEl], node, foundStart = false, stop = false;
 
-				while (!stop && (node = nodeStack.pop())) {
-					if (node.nodeType == 3) {
-						var nextCharIndex = charIndex + node.length;
-						if (!foundStart && start >= charIndex && start <= nextCharIndex) {
-							range.setStart(node, start - charIndex);
-							foundStart = true;
-						}
-						if (foundStart && end >= charIndex && end <= nextCharIndex) {
-							range.setEnd(node, end - charIndex);
-							stop = true;
-						}
-						charIndex = nextCharIndex;
-					} else {
-						var i = node.childNodes.length;
-						while (i--) {
-							nodeStack.push(node.childNodes[i]);
-						}
-					}
+		while (!stop && (node = nodeStack.pop())) {
+			if (node.nodeType == 3) {
+				var nextCharIndex = charIndex + node.length;
+				if (!foundStart && start >= charIndex && start <= nextCharIndex) {
+					range.setStart(node, start - charIndex);
+					foundStart = true;
 				}
-
-				var sel = window.getSelection();
-				sel.removeAllRanges();
-				sel.addRange(range);
-			}
-		} else if (document.selection) {
-			setSelectionByCharacterOffsets = function(containerEl, start, end) {
-				var textRange = document.body.createTextRange();
-				textRange.moveToElementText(containerEl);
-				textRange.collapse(true);
-				textRange.moveEnd("character", end);
-				textRange.moveStart("character", start);
-				textRange.select();
-			};
-		}
-
-		var setCaret = function(element, index) {
-			setSelectionByCharacterOffsets(element, index, index);
-		};
-
-		
-		// splits text into array of lines
-		(function($) {
-		$.fn.lines = function(){
-
-            rawText = this.html().replace('<br>', ' ').replace('<br />', ' ').replace('<br/>', ' ');
-            words = rawText.split(" "); //split text into each word
-			lines = [];
-			
-			hiddenElement = this.clone(); //copies font settings and width
-			hiddenElement.empty();//clear text
-			hiddenElement.css("visibility", "hidden");
-			
-			jQuery('body').append(hiddenElement); // height doesn't exist until inserted into document
-			
-			hiddenElement.text('i'); //add character to get height
-			height = hiddenElement.height();
-			hiddenElement.empty();
-			
-			startIndex = -1; // quick fix for now - offset by one to get the line indexes working
-
-			jQuery.each(words, function() {
-			  lineText = hiddenElement.html(); // get text before new word appended
-              
-			  hiddenElement.html(lineText + " " + this);
-				if(hiddenElement.height() > height) { // if new line
-					lines.push({text: lineText, startIndex: startIndex, endIndex: (lineText.length + startIndex)}); // push lineText not hiddenElement.text() other wise each line will have 1 word too many
-					startIndex = startIndex + lineText.length +1;
-					hiddenElement.html(this); //first word of the next line
+				if (foundStart && end >= charIndex && end <= nextCharIndex) {
+					range.setEnd(node, end - charIndex);
+					stop = true;
 				}
-		   });
-			lines.push({text: hiddenElement.text(), startIndex: startIndex, endIndex: (hiddenElement.html().length + startIndex)}); // push last line
-			hiddenElement.remove();
-			lines[0].startIndex = 0; //quick fix for now - adjust first line index
-			return lines;
-		}
-		})(jQuery);
-
-		(function($) { // to save a bit of typing
-			$.fn.lastLine = function() {
-				return this.lines()[this.lines().length-1];
-			}
-		})(jQuery);
-
-		function findLineViaCaret(textElement,caretIndex){
-			jQuery.each(textElement.lines(), function() {
-				if(this.startIndex <= caretIndex && this.endIndex >= caretIndex) {
-					r = this;
-					return false; // exits loop
-				}
-		   });
-			return r;
-		}
-
-		function distanceToCaret(textElement,caretIndex){
-
-			line = findLineViaCaret(textElement,caretIndex);
-			if(line.startIndex == 0) { 
-			 // +1 needed for substring to be correct but only first line?
-				relativeIndex = caretIndex - line.startIndex +1;
+				charIndex = nextCharIndex;
 			} else {
-			  relativeIndex = caretIndex - line.startIndex;  
+				var i = node.childNodes.length;
+				while (i--) {
+					nodeStack.push(node.childNodes[i]);
+				}
 			}
-			textToCaret = line.text.substring(0, relativeIndex);
-			
-			hiddenElement = textElement.clone(); //copies font settings and width
-			hiddenElement.empty();//clear text
-			hiddenElement.css("visibility", "hidden");
-			hiddenElement.css("width", "auto"); //so width can be measured
-			hiddenElement.css("display", "inline-block"); //so width can be measured
-
-			jQuery('body').append(hiddenElement); // doesn't exist until inserted into document
-			
-			hiddenElement.text(textToCaret); //add to get width
-			width = hiddenElement.width();
-			hiddenElement.remove();
-			
-			return width;
 		}
 
-        function getCaretViaWidth(textElement, lineNo, width) {
-			line = textElement.lines()[lineNo-1];
-			 
-			lineCharacters = line.text.replace(/^\s+|\s+$/g, '').split("");
-			
-			hiddenElement = textElement.clone(); //copies font settings and width
-			hiddenElement.empty();//clear text
-			hiddenElement.css("visibility", "hidden");
-			hiddenElement.css("width", "auto"); //so width can be measured
-			hiddenElement.css("display", "inline-block"); //so width can be measured
-			
-			jQuery('body').append(hiddenElement); // doesn't exist until inserted into document
-			
-			if(width == 0) { //if width is 0 index is at start
-				caretIndex = line.startIndex;
-			} else {// else loop through each character until width is reached
-				hiddenElement.empty();
-				jQuery.each(lineCharacters, function() {
-					text = hiddenElement.text();
-					prevWidth = hiddenElement.width();
-					hiddenElement.text(text + this);
-					elWidth = hiddenElement.width();
-					caretIndex = hiddenElement.text().length + line.startIndex;
-					if(hiddenElement.width() > width) {
-						// check whether character after width or before width is closest
-						if(Math.abs(width - prevWidth) < Math.abs(width - elWidth)) {
-						   caretIndex = caretIndex -1; // move index back one if previous is closes
-						}
-						return false;
-					}
-				});
-			}
-			hiddenElement.remove();
-			return caretIndex;
+		var sel = window.getSelection();
+		sel.removeAllRanges();
+		sel.addRange(range);
+	}
+} else if (document.selection) {
+	setSelectionByCharacterOffsets = function(containerEl, start, end) {
+		var textRange = document.body.createTextRange();
+		textRange.moveToElementText(containerEl);
+		textRange.collapse(true);
+		textRange.moveEnd("character", end);
+		textRange.moveStart("character", start);
+		textRange.select();
+	};
+}
+
+var setCaret = function(element, index) {
+	setSelectionByCharacterOffsets(element, index, index);
+};
+
+
+// splits text into array of lines
+(function($) {
+$.fn.lines = function(){
+
+    rawText = this.html().replace('<br>', ' ').replace('<br />', ' ').replace('<br/>', ' ');
+    words = rawText.split(" "); //split text into each word
+	lines = [];
+	
+	hiddenElement = this.clone(); //copies font settings and width
+	hiddenElement.empty();//clear text
+	hiddenElement.css("visibility", "hidden");
+	
+	jQuery('body').append(hiddenElement); // height doesn't exist until inserted into document
+	
+	hiddenElement.text('i'); //add character to get height
+	height = hiddenElement.height();
+	hiddenElement.empty();
+	
+	startIndex = -1; // quick fix for now - offset by one to get the line indexes working
+
+	jQuery.each(words, function() {
+	  lineText = hiddenElement.html(); // get text before new word appended
+      
+	  hiddenElement.html(lineText + " " + this);
+		if(hiddenElement.height() > height) { // if new line
+			lines.push({text: lineText, startIndex: startIndex, endIndex: (lineText.length + startIndex)}); // push lineText not hiddenElement.text() other wise each line will have 1 word too many
+			startIndex = startIndex + lineText.length +1;
+			hiddenElement.html(this); //first word of the next line
 		}
+   });
+	lines.push({text: hiddenElement.text(), startIndex: startIndex, endIndex: (hiddenElement.html().length + startIndex)}); // push last line
+	hiddenElement.remove();
+	lines[0].startIndex = 0; //quick fix for now - adjust first line index
+	return lines;
+}
+})(jQuery);
 
-        function goNextArea(current) {
-            var next = null,
-                nextSiblings = current.nextAll();
+(function($) { // to save a bit of typing
+	$.fn.lastLine = function() {
+		return this.lines()[this.lines().length-1];
+	}
+})(jQuery);
 
-            if(nextSiblings.length > 0) {
-                for (var i=0;i < nextSiblings.length;i++) {
-                   
-                    var self = $(nextSiblings[i]);
-                    if(self.hasClass('bbe')){
-                        next = self;
-                        console.log('sibling');
-                        i = nextSiblings.length; //exit loop
-                    } else { //Search for nephews
-                        var nephew = self.find('.bbe').first();
-                        if(nephew.length > 0) {
-                            console.log('nephew');
-                            next = nephew;
-                            i = nextSiblings.length; //exit loop
-                        }
-                    }
-                }
+function findLineViaCaret(textElement,caretIndex){
+	jQuery.each(textElement.lines(), function() {
+		if(this.startIndex <= caretIndex && this.endIndex >= caretIndex) {
+			r = this;
+			return false; // exits loop
+		}
+   });
+	return r;
+}
 
-            } else { //if have no next siblings, go up to parent and look for uncles and cousins
-                var parents = current.parents();
+function distanceToCaret(textElement,caretIndex){
 
-                for (var i=0;i < parents.length;i++) {
-                    var uncles = parents.nextAll();
-                    for (var x=0;x < uncles.length;x++) {
-                        var uncle = $(uncles[i]);
-                        if(uncle.hasClass('bbe')){
-                            console.log('uncle');
-                            next = uncle;
-                            x = uncles.length; //exit loop
-                            i = parents.length; //exit loop
-                        } else { //Search for cousins
-                            var cousin = uncle.find('.bbe').first();
-                            if(cousin.length > 0) {
-                                console.log('cousin');
-                                next = cousin;
-                                x = uncles.length; //exit loop
-                                i = parents.length; //exit loop
-                            }
-                        }
-                    }
-                }
-            }
+	line = findLineViaCaret(textElement,caretIndex);
+	if(line.startIndex == 0) { 
+	 // +1 needed for substring to be correct but only first line?
+		relativeIndex = caretIndex - line.startIndex +1;
+	} else {
+	  relativeIndex = caretIndex - line.startIndex;  
+	}
+	textToCaret = line.text.substring(0, relativeIndex);
+	
+	hiddenElement = textElement.clone(); //copies font settings and width
+	hiddenElement.empty();//clear text
+	hiddenElement.css("visibility", "hidden");
+	hiddenElement.css("width", "auto"); //so width can be measured
+	hiddenElement.css("display", "inline-block"); //so width can be measured
 
-            if (next) {
-                if(next.hasClass('bbe')){
-                    getDistanceToCaret = distanceToCaret(current, cursorIndex());
-                    caretPosition = getCaretViaWidth(next, 1, getDistanceToCaret);
-                    next.focus();
-                    setCaret(next.get(0), caretPosition);
-                }
-            } else {
-                console.log('Nowhere to go');
-            }
-        }
+	jQuery('body').append(hiddenElement); // doesn't exist until inserted into document
+	
+	hiddenElement.text(textToCaret); //add to get width
+	width = hiddenElement.width();
+	hiddenElement.remove();
+	
+	return width;
+}
 
-        function goPrevArea(current, leftArrow) {
-            var prev = null,
-                prevSiblings = current.prevAll();
-
-            if(prevSiblings.length > 0) {
-                for (var i=0;i < prevSiblings.length;i++) {
-                   
-                    var self = $(prevSiblings[i]);
-                    if(self.hasClass('bbe')){
-                        prev = self;
-                        console.log('sibling');
-                        i = prevSiblings.length; //exit loop
-                    } else { //Search for nephews
-                        var nephew = self.find('.bbe').last();
-                        if(nephew.length > 0) {
-                            console.log('nephew');
-                            prev = nephew;
-                            i = prevSiblings.length; //exit loop
-                        }
-                    }
-                }
-
-            } else { //if have no next siblings, go up to parent and look for uncles and cousins
-                var parents = current.parents();
-
-                for (var i=0;i < parents.length;i++) {
-                    var uncles = parents.prevAll();
-                    for (var x=0;x < uncles.length;x++) {
-                        var uncle = $(uncles[i]);
-                        if(uncle.hasClass('bbe')){
-                            console.log('uncle');
-                            prev = uncle;
-                            x = uncles.length; //exit loop
-                            i = parents.length; //exit loop
-                        } else { //Search for cousins
-                            var cousin = uncle.find('.bbe').last();
-                            if(cousin.length > 0) {
-                                console.log('cousin');
-                                prev = cousin;
-                                x = uncles.length; //exit loop
-                                i = parents.length; //exit loop
-                            }
-                        }
-                    }
-                }
-            }
-
-            if (prev) {
-                if(prev.hasClass('bbe')){
-                    if (leftArrow) {
-                        prev.focus();
-                        setCaret(prev.get(0), prev.text().length); 
-                    } else {
-                        getDistanceToCaret = distanceToCaret(current, cursorIndex());
-                        lineNumber = prev.lines().length;
-                        caretPosition = getCaretViaWidth(prev, lineNumber, getDistanceToCaret);
-                        prev.focus();
-                        setCaret(prev.get(0), caretPosition);
-                    }
-                }
-            } else {
-                console.log('Nowhere to go');
-            }
-        }
-
-		// arrow key conditions
-		$(document).on('keydown', '.bbe', function(e) {
-
-            // If edit area contains <br> element somewhere before or after the cursorIndex, then allow default key behavior within the contenteditable area
-
-            var breakAbove = false,
-                breakBelow = false,
-                textBeforeCaret = extractContentsBeforeCaret(),
-                textAfterCaret = extractContentsAfterCaret(),
-                current = $(this);
-
-
-            if (textBeforeCaret.indexOf('<br') >= 0 || textAfterCaret.indexOf('<br') == 0) {  
-                breakAbove = true;
-            }
-
-            if (textAfterCaret.indexOf('<br') > 0) {  
-                breakBelow = true;
-            }
-
-            // Check to see if caret is on last line of an editable region containing <br> elements
-            range = rangy.getSelection().getRangeAt(0);
-            post_range = document.createRange();
-            post_range.selectNodeContents(this);
-            post_range.setStart(range.endContainer, range.endOffset);
-            next_text = post_range.cloneContents();
-            at_end = next_text.textContent.length === 0;    
-
-			//if cursor on first line & up arrow key
-			if(e.which == 38 && (cursorIndex() < $(this).lines()[0].text.length) && breakAbove !== true) {    
-				e.preventDefault();
-				goPrevArea(current, true);
-
-			// if cursor on last line & down arrow
-			} else if(e.which == 40 && ((cursorIndex() >= $(this).lastLine().startIndex && cursorIndex() <= ($(this).lastLine().startIndex + $(this).lastLine().text.length) && breakBelow !== true) || at_end == true)) {
-				e.preventDefault();
-                goNextArea(current);
-
-			//if start of paragraph and left arrow
-			} else if(e.which == 37 && cursorIndex() == 0 && breakAbove !== true) {
-				e.preventDefault();
-                goPrevArea(current, true);
-
-			// if end of paragraph and right arrow
-			} else if(e.which == 39 && cursorIndex() == $(this).text().length && breakBelow !== true) {
-				e.preventDefault();
-				goNextArea(current);
-			};
+function getCaretViaWidth(textElement, lineNo, width) {
+	line = textElement.lines()[lineNo-1];
+	 
+	lineCharacters = line.text.replace(/^\s+|\s+$/g, '').split("");
+	
+	hiddenElement = textElement.clone(); //copies font settings and width
+	hiddenElement.empty();//clear text
+	hiddenElement.css("visibility", "hidden");
+	hiddenElement.css("width", "auto"); //so width can be measured
+	hiddenElement.css("display", "inline-block"); //so width can be measured
+	
+	jQuery('body').append(hiddenElement); // doesn't exist until inserted into document
+	
+	if(width == 0) { //if width is 0 index is at start
+		caretIndex = line.startIndex;
+	} else {// else loop through each character until width is reached
+		hiddenElement.empty();
+		jQuery.each(lineCharacters, function() {
+			text = hiddenElement.text();
+			prevWidth = hiddenElement.width();
+			hiddenElement.text(text + this);
+			elWidth = hiddenElement.width();
+			caretIndex = hiddenElement.text().length + line.startIndex;
+			if(hiddenElement.width() > width) {
+				// check whether character after width or before width is closest
+				if(Math.abs(width - prevWidth) < Math.abs(width - elWidth)) {
+				   caretIndex = caretIndex -1; // move index back one if previous is closes
+				}
+				return false;
+			}
 		});
+	}
+	hiddenElement.remove();
+	return caretIndex;
+}
+
+function goNextArea(current) {
+    var next = null,
+        nextSiblings = current.nextAll();
+
+    if(nextSiblings.length > 0) {
+        for (var i=0;i < nextSiblings.length;i++) {
+           
+            var self = $(nextSiblings[i]);
+            if(self.hasClass('bbe')){
+                next = self;
+                console.log('sibling');
+                i = nextSiblings.length; //exit loop
+            } else { //Search for nephews
+                var nephew = self.find('.bbe').first();
+                if(nephew.length > 0) {
+                    console.log('nephew');
+                    next = nephew;
+                    i = nextSiblings.length; //exit loop
+                }
+            }
+        }
+
+    } else { //if have no next siblings, go up to parent and look for uncles and cousins
+        var parents = current.parents();
+
+        for (var i=0;i < parents.length;i++) {
+            var uncles = parents.nextAll();
+            for (var x=0;x < uncles.length;x++) {
+                var uncle = $(uncles[i]);
+                if(uncle.hasClass('bbe')){
+                    console.log('uncle');
+                    next = uncle;
+                    x = uncles.length; //exit loop
+                    i = parents.length; //exit loop
+                } else { //Search for cousins
+                    var cousin = uncle.find('.bbe').first();
+                    if(cousin.length > 0) {
+                        console.log('cousin');
+                        next = cousin;
+                        x = uncles.length; //exit loop
+                        i = parents.length; //exit loop
+                    }
+                }
+            }
+        }
+    }
+
+    if (next) {
+        if(next.hasClass('bbe')){
+            getDistanceToCaret = distanceToCaret(current, cursorIndex());
+            caretPosition = getCaretViaWidth(next, 1, getDistanceToCaret);
+            next.focus();
+            setCaret(next.get(0), caretPosition);
+        }
+    } else {
+        console.log('Nowhere to go');
+    }
+}
+
+function goPrevArea(current, leftArrow) {
+    var prev = null,
+        prevSiblings = current.prevAll();
+
+    if(prevSiblings.length > 0) {
+        for (var i=0;i < prevSiblings.length;i++) {
+           
+            var self = $(prevSiblings[i]);
+            if(self.hasClass('bbe')){
+                prev = self;
+                console.log('sibling');
+                i = prevSiblings.length; //exit loop
+            } else { //Search for nephews
+                var nephew = self.find('.bbe').last();
+                if(nephew.length > 0) {
+                    console.log('nephew');
+                    prev = nephew;
+                    i = prevSiblings.length; //exit loop
+                }
+            }
+        }
+
+    } else { //if have no next siblings, go up to parent and look for uncles and cousins
+        var parents = current.parents();
+
+        for (var i=0;i < parents.length;i++) {
+            var uncles = parents.prevAll();
+            for (var x=0;x < uncles.length;x++) {
+                var uncle = $(uncles[i]);
+                if(uncle.hasClass('bbe')){
+                    console.log('uncle');
+                    prev = uncle;
+                    x = uncles.length; //exit loop
+                    i = parents.length; //exit loop
+                } else { //Search for cousins
+                    var cousin = uncle.find('.bbe').last();
+                    if(cousin.length > 0) {
+                        console.log('cousin');
+                        prev = cousin;
+                        x = uncles.length; //exit loop
+                        i = parents.length; //exit loop
+                    }
+                }
+            }
+        }
+    }
+
+    if (prev) {
+        if(prev.hasClass('bbe')){
+            if (leftArrow) {
+                prev.focus();
+                setCaret(prev.get(0), prev.text().length); 
+            } else {
+                getDistanceToCaret = distanceToCaret(current, cursorIndex());
+                lineNumber = prev.lines().length;
+                caretPosition = getCaretViaWidth(prev, lineNumber, getDistanceToCaret);
+                prev.focus();
+                setCaret(prev.get(0), caretPosition);
+            }
+        }
+    } else {
+        console.log('Nowhere to go');
+    }
+}
+
+// Keyboard functions while focused in an editable area
+$('.bbuilder-content').on('keydown', '.bbe', function(e) {
+
+    // If edit area contains <br> element somewhere before or after the cursorIndex, then allow default key behavior within the contenteditable area
+
+    var breakAbove = false,
+        breakBelow = false,
+        textBeforeCaret = extractContentsBeforeCaret(),
+        textAfterCaret = extractContentsAfterCaret(),
+        current = $(this),
+        keyPressed = e.keyCode;
+
+
+    if (textBeforeCaret.indexOf('<br') >= 0 || textAfterCaret.indexOf('<br') == 0) {  
+        breakAbove = true;
+    }
+
+    if (textAfterCaret.indexOf('<br') > 0) {  
+        breakBelow = true;
+    }
+
+    // Check to see if caret is on last line of an editable region containing <br> elements
+    range = rangy.getSelection().getRangeAt(0);
+    post_range = document.createRange();
+    post_range.selectNodeContents(this);
+    post_range.setStart(range.endContainer, range.endOffset);
+    next_text = post_range.cloneContents();
+    at_end = next_text.textContent.length === 0;    
+
+	switch (keyPressed) {
+        
+        case 38: //Up arrow
+            //if cursor on first line & up arrow key
+            if((cursorIndex() < $(this).lines()[0].text.length) && breakAbove !== true) {    
+                e.preventDefault();
+                goPrevArea(current, true);
+            }
+            break;
+
+        
+        case 40: //Down arrow
+            // if cursor on last line & down arrow
+            if((cursorIndex() >= $(this).lastLine().startIndex && cursorIndex() <= ($(this).lastLine().startIndex + $(this).lastLine().text.length) && breakBelow !== true) || at_end == true) {
+                e.preventDefault();
+                goNextArea(current);
+            }
+            break;
+
+        
+        case 37: // Left arrow
+            //if start of paragraph and left arrow
+            if(cursorIndex() == 0 && breakAbove !== true) {
+                e.preventDefault();
+                goPrevArea(current, true);
+            }
+            break;
+
+        
+        case 39: // Right arrow
+            //if end of paragraph and right arrow
+            if(cursorIndex() == $(this).text().length && breakBelow !== true) {
+                e.preventDefault();
+                goNextArea(current);
+            }
+            break;
+
+        case 13: //Enter key
+            event.preventDefault();
+
+            /*Shift+Enter creates a <br> element within current editable block*/
+            if(event.shiftKey) {
+                insertNodeAtRange('br', '', 'end');
+
+                /*If at the end of an editable area, drop the caret down to a new line by inserting a second <br> */
+                console.log(textAfterCaret);
+                if (textAfterCaret == "" || textAfterCaret == null) {
+                    insertNodeAtRange('br', '', 'end');
+                }
+                
+
+                break;
+            }
+
+            /*Enter key while at the end of editable area creates a new editable block.  Each separate block has a .bbe class */
+            //Create an empty duplicate of currently focused element, and move focus to the new element
+            var $dupElem = $(this).clone();
+            $dupElem.empty();
+            $(this).after($dupElem);
+            $(this).next().attr('contenteditable', 'true').focus();
+            break;
+
+    }
+
+    
+});
 
 
 
@@ -555,45 +613,18 @@ http://jsfiddle.net/zQUhV/47/
 */
 
 $(document).on('focus', 'input, button, textarea, checkbox, radio, a[href], [contenteditable="true"]', function(event) {
-    $self = $(this);
-    if($self.parents('.bbuilder-toolbar').length <= 0) {
-        $('.bbfocused').each(function() {
-            $(this).removeClass('bbfocused');
-        });
-        if($self.hasClass('bbe')) {
-            $(this).addClass('bbfocused');
+    var prevFocused = BB.focusedEl || $(this);
+    BB.focusedEl = $(this);
+    if(BB.focusedEl.parents('.bbuilder-toolbar').length <= 0) {
+        if(prevFocused.hasClass('bbfocused')) {
+            prevFocused.removeClass('bbfocused');
+        }
+        if(BB.focusedEl.hasClass('bbe')) {
+            BB.focusedEl.addClass('bbfocused');
         }
     }
-    
-    
 });
 
-
-/*Enter key creates a new editable block.  Each separate block has a .bbe class */
-/*Shift+Enter creates a (visible) <br> element within current editable block*/
-
-
-$('.bbuilder-content').on('keypress', '.bbe', function(event) {
-	
-	
-    if(!$(this).hasClass('prettyprint')) { //Use default key behaviour in HTML view, but customize it for Design view
-        if (event.keyCode == 13 && event.shiftKey) {
-    		event.preventDefault();
-            //insertNodeAtRange(null, '\u00a0', 'start'); //Only needed if caret doesn't drop down to new line. CSS on the <br> ensures that it does.
-            insertNodeAtRange('br', '', 'end');
-            
-    	} else if ( event.keyCode == 13 ) {
-    		event.preventDefault();
-    		
-            //Create an empty duplicate of currently focused element, and move focus to the new element
-            var $dupElem = $(this).clone();
-    		$dupElem.empty();
-    		$(this).after($dupElem);
-    		$(this).next().attr('contenteditable', 'true').focus();
-    	}
-    }
-
-});
 
 
 

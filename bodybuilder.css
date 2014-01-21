@@ -14,10 +14,10 @@
 	cursor: text;
 }
 
-.bbuilder-instance .bbfocused br { /*Ensures cursor drops to new line*/
+/*.bbuilder-instance .bbfocused br { /*Ensures cursor drops to new line -- but, prevents visibility of space created by multiple contiguous <br> elements
 	display: block;
 	content: ' ';
-}
+}*/
 
 .bbuilder-instance code {
 	white-space: pre ;

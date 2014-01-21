@@ -550,14 +550,22 @@ http://jsfiddle.net/zQUhV/47/
 /*Start with a single contenteditable p (editable block)*/
 
 
-/* .bbe elements that receive focus get a .bbfocused class. */
+/* All focusable elements on the page, outside a bbuilder-toolbar, remove any .bbfocused classes.
+   .bbe elements receiving focus will then have the .bbfocus class added.
+*/
 
-$('.bbuilder-content').on('focus', '.bbe', function(event) {
-
-    $('.bbfocused').each(function() {
-        $(this).removeClass('bbfocused');
-    });
-    $(this).addClass('bbfocused');
+$(document).on('focus', 'input, button, textarea, checkbox, radio, a[href], [contenteditable="true"]', function(event) {
+    $self = $(this);
+    if($self.parents('.bbuilder-toolbar').length <= 0) {
+        $('.bbfocused').each(function() {
+            $(this).removeClass('bbfocused');
+        });
+        if($self.hasClass('bbe')) {
+            $(this).addClass('bbfocused');
+        }
+    }
+    
+    
 });
 
 

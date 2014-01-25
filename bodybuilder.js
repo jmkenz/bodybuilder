@@ -7,29 +7,59 @@ github.com/jmkenz/bodybuilder
 /*Create BodyBuilder namespace*/
 var BB = {};
 
+/*Define editable elements*/
+var editableElements = 'div, section, aside, header, footer, blockquote, fieldset, form, h1, h2, h3, h4, h5, h6, p, li';
+
 /* INITIALIZE INSTANCES*/
 
 /*Define toolbar*/
-var btnTogSource = '<button class="tog-source">Toggle HTML</button>',
-    btnIndentRight = '<button class="indent-right html-tool">Indent Right</button>';
+var btnBold = '<button class="bb-make-bold"><strong>B</strong></button>',
+    btnItalicize = '<button class="bb-italicize"><em>i</em></button>',
+    btnTogSource = '<button class="bb-tog-source">HTML</button>',
+    toolbarHTMLopen = '<div class="bb-html-tools">'
+    btnIndentRight = '<button class="bb-indent-right">Indent Right</button>',
+    toolbarHTMLclose = '</div>',
     bbuilderToolbar = '<div class="bbuilder-toolbar">'
+                        + btnBold
+                        + btnItalicize
                         + btnTogSource
+                        + toolbarHTMLopen
                         + btnIndentRight
+                        + toolbarHTMLclose
                         + '</div>';
 
 /*Initialize all instances*/
 $('.bbuilder-instance').each(function() {
     $(this).prepend(bbuilderToolbar);
 
-    /*Enable contenteditable*/
-    $(this).find('.bbe').each(function() {
-        $(this).attr('contenteditable', 'true');
+    /*Enable contenteditable*/    
+
+    $(this).find(editableElements).each(function() {
+        self = $(this);
+        nestedEditables = self.find(editableElements);
+
+        if(nestedEditables.length <= 0 && !self.hasClass('bbwidget') && self.parents('.bbwidget').length <= 0) {
+            self.attr('contenteditable', 'true');
+        }
     });
+
+        
 
 });
 
+$('.bbuilder-toolbar .bb-make-bold').click(function(){
+    document.execCommand('CreateLink', false, 'toBeBold');
+    var targ = $('a[href="toBeBold"]');
+    targ.wrap('<strong />')
+    targ.contents().unwrap();
 
-$('.tog-source').click(function() {
+});
+
+$('.bbuilder-toolbar .bb-italicize').click(function(){
+   
+});
+
+$('.bbuilder-toolbar .bb-tog-source').click(function() {
     
     var toolbarEl = $(this).parent('.bbuilder-toolbar'),
         contentArea = toolbarEl.siblings('.bbuilder-content').first();
@@ -38,21 +68,24 @@ $('.tog-source').click(function() {
         $(this).toggleSource(contentArea);
     });
 
-    toolbarEl.toggleClass('html-toolbar');
-    contentArea.toggleClass('html-view');
+    toolbarEl.toggleClass('bb-html-toolbar');
+    contentArea.toggleClass('bb-html-view');
    
-   if(contentArea.hasClass('html-view')) {
+   if(contentArea.hasClass('bb-html-view')) {
      prettyPrint();
    } else {
-    contentArea.find('.bbe').each(function(){
-        $(this).attr('contenteditable', 'true');
+    contentArea.find(editableElements).each(function(){
+        self = $(this);
+        nestedEditables = self.find(editableElements);
+
+        if(nestedEditables.length <= 0 && !self.hasClass('bbwidget') && self.parents('.bbwidget').length <= 0) {
+            self.attr('contenteditable', 'true');
+        }
     });
    }
 });
 
-$('.indent-right').click(function(){
-
-
+$('.bbuilder-toolbar .bb-indent-right').click(function(){
     insertNodeAtRange('', '\t', 'end');
 });
 
@@ -389,12 +422,12 @@ function goNextArea(current) {
         for (var i=0;i < nextSiblings.length;i++) {
            
             var self = $(nextSiblings[i]);
-            if(self.hasClass('bbe')){
+            if(self.is('[contenteditable="true"]')){
                 next = self;
                 console.log('sibling');
                 i = nextSiblings.length; //exit loop
             } else { //Search for nephews
-                var nephew = self.find('.bbe').first();
+                var nephew = self.find('[contenteditable="true"]').first();
                 if(nephew.length > 0) {
                     console.log('nephew');
                     next = nephew;
@@ -410,13 +443,13 @@ function goNextArea(current) {
             var uncles = parents.nextAll();
             for (var x=0;x < uncles.length;x++) {
                 var uncle = $(uncles[i]);
-                if(uncle.hasClass('bbe')){
+                if(uncle.is('[contenteditable="true"]')){
                     console.log('uncle');
                     next = uncle;
                     x = uncles.length; //exit loop
                     i = parents.length; //exit loop
                 } else { //Search for cousins
-                    var cousin = uncle.find('.bbe').first();
+                    var cousin = uncle.find('[contenteditable="true"]').first();
                     if(cousin.length > 0) {
                         console.log('cousin');
                         next = cousin;
@@ -429,7 +462,7 @@ function goNextArea(current) {
     }
 
     if (next) {
-        if(next.hasClass('bbe')){
+        if(next.is('[contenteditable="true"]')){
             getDistanceToCaret = distanceToCaret(current, cursorIndex());
             caretPosition = getCaretViaWidth(next, 1, getDistanceToCaret);
             next.focus();
@@ -448,12 +481,12 @@ function goPrevArea(current, leftArrow) {
         for (var i=0;i < prevSiblings.length;i++) {
            
             var self = $(prevSiblings[i]);
-            if(self.hasClass('bbe')){
+            if(self.is('[contenteditable="true"]')){
                 prev = self;
                 console.log('sibling');
                 i = prevSiblings.length; //exit loop
             } else { //Search for nephews
-                var nephew = self.find('.bbe').last();
+                var nephew = self.find('[contenteditable="true"]').last();
                 if(nephew.length > 0) {
                     console.log('nephew');
                     prev = nephew;
@@ -469,13 +502,13 @@ function goPrevArea(current, leftArrow) {
             var uncles = parents.prevAll();
             for (var x=0;x < uncles.length;x++) {
                 var uncle = $(uncles[i]);
-                if(uncle.hasClass('bbe')){
+                if(uncle.is('[contenteditable="true"]')){
                     console.log('uncle');
                     prev = uncle;
                     x = uncles.length; //exit loop
                     i = parents.length; //exit loop
                 } else { //Search for cousins
-                    var cousin = uncle.find('.bbe').last();
+                    var cousin = uncle.find('[contenteditable="true"]').last();
                     if(cousin.length > 0) {
                         console.log('cousin');
                         prev = cousin;
@@ -488,7 +521,7 @@ function goPrevArea(current, leftArrow) {
     }
 
     if (prev) {
-        if(prev.hasClass('bbe')){
+        if(prev.is('[contenteditable="true"]')){
             if (leftArrow) {
                 prev.focus();
                 setCaret(prev.get(0), prev.text().length); 
@@ -506,7 +539,7 @@ function goPrevArea(current, leftArrow) {
 }
 
 // Keyboard functions while focused in an editable area
-$('.bbuilder-content').on('keydown', '.bbe', function(e) {
+$('.bbuilder-content').on('keydown', '[contenteditable="true"]', function(e) {
 
     // If edit area contains <br> element somewhere before or after the cursorIndex, then allow default key behavior within the contenteditable area
 
@@ -588,7 +621,7 @@ $('.bbuilder-content').on('keydown', '.bbe', function(e) {
                 break;
             }
 
-            /*Enter key while at the end of editable area creates a new editable block.  Each separate block has a .bbe class */
+            /*Enter key while at the end of editable area creates a new editable block. */
             //Create an empty duplicate of currently focused element, and move focus to the new element
             var $dupElem = $(this).clone();
             $dupElem.empty();
@@ -609,7 +642,7 @@ $('.bbuilder-content').on('keydown', '.bbe', function(e) {
 
 
 /* All focusable elements on the page, outside a bbuilder-toolbar, remove any .bbfocused classes.
-   .bbe elements receiving focus will then have the .bbfocus class added.
+   Editable elements receiving focus will then have the .bbfocus class added.
 */
 
 $(document).on('focus', 'input, button, textarea, checkbox, radio, a[href], [contenteditable="true"]', function(event) {
@@ -619,7 +652,7 @@ $(document).on('focus', 'input, button, textarea, checkbox, radio, a[href], [con
         if(prevFocused.hasClass('bbfocused')) {
             prevFocused.removeClass('bbfocused');
         }
-        if(BB.focusedEl.hasClass('bbe')) {
+        if(BB.focusedEl.is('[contenteditable="true"]')) {
             BB.focusedEl.addClass('bbfocused');
         }
     }
@@ -645,13 +678,13 @@ $(document).on('focus', 'input, button, textarea, checkbox, radio, a[href], [con
 
 
 /*---- SAVING THE CONTENT TO A DATABASE -----*/
-/*Upon form entry, takes each editable block, removes the .bbe class, plus the markup for each widget (which retain the .bbuilder-widget class on the parent, and the data-attributes on each piece of user-specified content), and then combines them all into a textarea input field for submission.*/
+/*Upon form entry, takes each editable block, removes the contenteditable attributes, plus includes the markup for each widget (which retain the .bbwidget class on the parent, and the data-attributes on each piece of user-specified content), and then combines them all into a textarea input field for submission.*/
 
 
 /*---- EDITING EXISTING CONTENT -----*/
 
 /*Parsing the raw HTML back into the editing mode
-	-Block-level HTML elements are given the .bbe class and get the contenteditable property
+	-Block-level HTML elements are given the contenteditable property
 	.bbuilder-widget elements output their HTML but don't get the contenteditable property. Each element that contains user-specified values has a unique data-field-type value
 	 that tells the widget's modal window to populate the appropriate input field with the right value.
 
@@ -661,13 +694,13 @@ $(document).on('focus', 'input, button, textarea, checkbox, radio, a[href], [con
 
 
 /*---- HTML VIEW -----*/
-/*Isolated HTML view will surround the selected block with <code contenteditable="true"> tags, but not widget blocks. The markup in widgets stays protected. contenteditable and the bbe class will be stripped from the block's parent element. <code> is stripped back out when focus leaves the block, and the contenteditable attribute is moved back to the block's parent element.
+/*Isolated HTML view will surround the selected block with <code contenteditable="true"> tags, but not widget blocks. The markup in widgets stays protected. contenteditable ill be stripped from the block's parent element. <code> is stripped back out when focus leaves the block, and the contenteditable attribute is moved back to the block's parent element.
 
 carrot characters (< >) get converted to <span class="ct">&lt;</span> and <span class="ct">&gt;</span> while in HTML view. New carrot characters that are typed or pasted in are also converted.  When returning to visual edit mode, those <span class="ct"> elements are convereted back to real carrot characters.
 
 Similarly, special characters get converted to a full code visual: (e.g. &amp; becomes &amp;amp;). 
 
-Full HTML view strips all contenteditable attributes, and then wraps all editable blocks in <code contenteditable="true" class="bbe prettyprint lang-html"> and only strips them back out when Full HTML view is toggled off.  Again, widget blocks are excluded from this.
+Full HTML view strips all contenteditable attributes, and then wraps all editable blocks in <code contenteditable="true" class="prettyprint lang-html"> and only strips them back out when Full HTML view is toggled off.  Again, widget blocks are excluded from this.
 
 prettify.js is used to colorize the code. This will insert <span> tags throughout. These <spans> will need to be stripped out when exiting HTML view.
 
@@ -677,7 +710,7 @@ prettify.js is used to colorize the code. This will insert <span> tags throughou
 (function( $ ){
 	$.fn.toggleSource = function(contentArea) {
 		
-		if(contentArea.hasClass('html-view')) {
+		if(contentArea.hasClass('bb-html-view')) {
             
 
             var richContent = $(this).text().replace('&lt;', '<').replace('&gt;', '>');
@@ -686,14 +719,14 @@ prettify.js is used to colorize the code. This will insert <span> tags throughou
 
         } else {
           
-          $(this).removeAttr('contenteditable');
-          $(this).find('.bbe').each(function(){
+          $(this).removeAttr('contenteditable').removeClass('bbfocused');
+          $(this).find('[contenteditable="true"]').each(function(){
             $(this).removeAttr('contenteditable').removeClass('bbfocused');
           });
 
           var htmlContent = $(this).clone().wrap('<p>').parent().html().replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-		  $(this).replaceWith('<code contenteditable="true" class="bbe prettyprint lang-html">'+htmlContent+'</code>');
+		  $(this).replaceWith('<code contenteditable="true" class="prettyprint lang-html">'+htmlContent+'</code>');
         }
 		
 	}; 

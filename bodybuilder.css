@@ -1,9 +1,9 @@
-.bbuilder-instance .bbe:hover {
+.bbuilder-instance [contenteditable="true"]:hover {
 	background: #f2f2f2;
 }
 
 .bbuilder-instance .bbfocused,
-.bbuilder-instance .bbe:focus {
+.bbuilder-instance [contenteditable="true"]:focus {
 	padding: 5px;
 	margin-top: 5px;
 	margin-bottom: 5px;
@@ -31,10 +31,13 @@
 	margin-bottom: 10px;
 }
 
-.bbuilder-instance .bbuilder-toolbar .html-tool {
+.bbuilder-instance .bbuilder-toolbar .bb-html-tools {
 	display: none;
 }
 
-.bbuilder-instance .html-toolbar .html-tool {
-	display: inline-block;
+.bbuilder-instance .bb-html-toolbar .bb-html-tools {
+	display: block;
+	padding-top: 5px;
+	margin-top: 5px;
+	border-top: 1px solid #dcdcdc;
 }

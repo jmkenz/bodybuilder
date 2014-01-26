@@ -7,8 +7,61 @@ github.com/jmkenz/bodybuilder
 /*Create BodyBuilder namespace*/
 var BB = {};
 
+
 /*Define editable elements*/
 var editableElements = 'div, section, aside, header, footer, blockquote, fieldset, form, h1, h2, h3, h4, h5, h6, p, li';
+
+ /*Get text nodes*/
+function getTextNodesIn(node) {
+    var textNodes = [], whiteSpaceMatcher = /^[\s\t\r\n]*$/;
+
+    function getTextNodes(node) {
+        if (node.nodeType == 3) {
+            if (!whiteSpaceMatcher.test(node.nodeValue)) {
+                textNodes.push(node);
+            }
+        } else {
+            for (var i = 0, len = node.childNodes.length; i < len; ++i) {
+                getTextNodes(node.childNodes[i]);
+            }
+        }
+    }
+
+    getTextNodes(node);
+    return textNodes;
+}
+
+function enableEditable(instanceContent) {
+        
+        /*Enable contenteditable*/    
+        var editableNodes = instanceContent.find(editableElements),
+            editableSpans = instanceContent.children('span');
+
+        editableNodes = editableNodes.add(editableSpans);
+        
+        
+        /*Wrap orphan text nodes in a <span> and add them to the editable stack*/
+        var textNodes = getTextNodesIn(instanceContent[0]);
+        $(textNodes).each(function(){
+            self = $(this);
+            if(self.parent().hasClass('bbuilder-content')) {
+                self.wrap('<span></span>');
+                editableNodes = editableNodes.add(self.parent('span'));
+            }
+        });        
+
+        //Add contenteditable attribute
+        editableNodes.each(function() {
+            self = $(this);
+            nestedEditables = self.find(editableElements);
+
+            if(nestedEditables.length <= 0 && !self.hasClass('bbwidget') && self.parents('.bbwidget').length <= 0) {
+                self.attr('contenteditable', 'true');
+            }
+        });
+
+}
+
 
 /* INITIALIZE INSTANCES*/
 
@@ -30,19 +83,15 @@ var btnBold = '<button class="bb-make-bold"><strong>B</strong></button>',
 
 /*Initialize all instances*/
 $('.bbuilder-instance').each(function() {
-    $(this).prepend(bbuilderToolbar);
 
-    /*Enable contenteditable*/    
-
-    $(this).find(editableElements).each(function() {
-        self = $(this);
-        nestedEditables = self.find(editableElements);
-
-        if(nestedEditables.length <= 0 && !self.hasClass('bbwidget') && self.parents('.bbwidget').length <= 0) {
-            self.attr('contenteditable', 'true');
-        }
+    //Enable contenteditable
+    $(this).children('.bbuilder-content').each(function() {
+         enableEditable($(this));
     });
+   
 
+    //Render toolbar
+    $(this).prepend(bbuilderToolbar);
         
 
 });
@@ -64,7 +113,7 @@ $('.bbuilder-toolbar .bb-tog-source').click(function() {
     var toolbarEl = $(this).parent('.bbuilder-toolbar'),
         contentArea = toolbarEl.siblings('.bbuilder-content').first();
 
-    contentArea.children().not('.bbwidget').each(function(){
+    contentArea.contents().not('.bbwidget').each(function(){
         $(this).toggleSource(contentArea);
     });
 
@@ -74,14 +123,7 @@ $('.bbuilder-toolbar .bb-tog-source').click(function() {
    if(contentArea.hasClass('bb-html-view')) {
      prettyPrint();
    } else {
-    contentArea.find(editableElements).each(function(){
-        self = $(this);
-        nestedEditables = self.find(editableElements);
-
-        if(nestedEditables.length <= 0 && !self.hasClass('bbwidget') && self.parents('.bbwidget').length <= 0) {
-            self.attr('contenteditable', 'true');
-        }
-    });
+     enableEditable(contentArea);
    }
 });
 

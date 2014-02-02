@@ -68,6 +68,8 @@ function enableEditable(instanceContent) {
 /*Define toolbar*/
 var btnBold = '<button class="bb-make-bold"><strong>B</strong></button>',
     btnItalicize = '<button class="bb-italicize"><em>i</em></button>',
+    btnSup = '<button class="bb-sup">x<sup>y</sup></button>',
+    btnSub = '<button class="bb-sub">x<sub>y</sub></button>',
     btnTogSource = '<button class="bb-tog-source">HTML</button>',
     toolbarHTMLopen = '<div class="bb-html-tools">'
     btnIndentRight = '<button class="bb-indent-right">Indent Right</button>',
@@ -75,6 +77,8 @@ var btnBold = '<button class="bb-make-bold"><strong>B</strong></button>',
     bbuilderToolbar = '<div class="bbuilder-toolbar">'
                         + btnBold
                         + btnItalicize
+                        + btnSup
+                        + btnSub
                         + btnTogSource
                         + toolbarHTMLopen
                         + btnIndentRight
@@ -97,15 +101,11 @@ $('.bbuilder-instance').each(function() {
 });
 
 $('.bbuilder-toolbar .bb-make-bold').click(function(){
-    document.execCommand('CreateLink', false, 'toBeBold');
-    var targ = $('a[href="toBeBold"]');
-    targ.wrap('<strong />')
-    targ.contents().unwrap();
-
+    console.log('N/A');
 });
 
 $('.bbuilder-toolbar .bb-italicize').click(function(){
-   
+    console.log('N/A');
 });
 
 $('.bbuilder-toolbar .bb-tog-source').click(function() {

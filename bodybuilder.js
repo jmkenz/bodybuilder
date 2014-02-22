@@ -8,6 +8,62 @@ github.com/jmkenz/bodybuilder
 var BB = {};
 
 
+/*Function to find deepest children*/
+$.fn.findDeepest = function() {
+    var results = [];
+    this.each(function() {
+        var deepLevel = 0;
+        var deepNode = this;
+        treeWalkFast(this, function(node, level) {
+            if (level > deepLevel) {
+                deepLevel = level;
+                deepNode = node;
+            }
+        });
+        results.push(deepNode);
+    });
+    return this.pushStack(results);
+};
+
+var treeWalkFast = (function() {
+    // create closure for constants
+    var skipTags = {"SCRIPT": true, "IFRAME": true, "OBJECT": true, "EMBED": true};
+    return function(parent, fn, allNodes) {
+        var node = parent.firstChild, nextNode;
+        var level = 1;
+        while (node && node != parent) {
+            if (allNodes || node.nodeType === 1) {
+                if (fn(node, level) === false) {
+                    return(false);
+                }
+            }
+            // if it's an element &&
+            //    has children &&
+            //    has a tagname && is not in the skipTags list
+            //  then, we can enumerate children
+            if (node.nodeType === 1 && node.firstChild && !(node.tagName && skipTags[node.tagName])) {                
+                node = node.firstChild;
+                ++level;
+            } else if (node.nextSibling) {
+                node = node.nextSibling;
+            } else {
+                // no child and no nextsibling
+                // find parent that has a nextSibling
+                --level;
+                while ((node = node.parentNode) != parent) {
+                    if (node.nextSibling) {
+                        node = node.nextSibling;
+                        break;
+                    }
+                    --level;
+                }
+            }
+        }
+    }
+})();
+
+
+
 /*Define editable elements*/
 var editableElements = 'div, section, aside, header, footer, blockquote, fieldset, form, h1, h2, h3, h4, h5, h6, p, li';
 
@@ -101,7 +157,51 @@ $('.bbuilder-instance').each(function() {
 });
 
 $('.bbuilder-toolbar .bb-make-bold').click(function(){
-    console.log('N/A');
+    var sel = rangy.getSelection()
+
+    if (sel.rangeCount > 0) {
+        var range = sel.getRangeAt(0),
+            rangeHtml = range.toHtml(),
+            frag,
+            processedFrag,
+            target,
+            targetDescendants,
+            textNodes = new Array(),
+            toolbar = $(this).parent('.bbuilder-toolbar');
+
+        range.deleteContents();
+
+        //Process rangeHtml
+        toolbar.append('<div id="temp">'+rangeHtml+'</div>');
+
+        frag =  $('#temp').clone();
+        $('#temp').remove();    
+
+        //Wrap nested text nodes
+        frag.find('*').each(function(){   
+            var thisContents = $(this).contents();
+            thisContents = thisContents.filter(function () { return this.nodeType == 3; });
+            textNodes.push(thisContents);
+        });
+
+        //Wrap direct child text nodes
+        textNodes.push(frag.contents().filter(function () { return this.nodeType == 3; }));
+
+        //Wrap text nodes
+        for (var i = 0; i < textNodes.length; i++) {
+            textNodes[i].wrap('<strong/>');
+        }
+        
+
+        //Insert processed nodes
+        //toolbar.append(frag);
+        
+        
+
+        range.insertNode(frag[0]);
+        
+    }
+
 });
 
 $('.bbuilder-toolbar .bb-italicize').click(function(){

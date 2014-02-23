@@ -154,7 +154,8 @@ var btnBold = '<button class="bb-make-bold"><strong>B</strong></button>',
                         + toolbarHTMLopen
                         + btnIndentRight
                         + toolbarHTMLclose
-                        + '</div>';
+                        + '</div>'
+                        + '<div class="bbuilder-path">Path: <span class="bbuilder-path-content"></span></div>';
 
 /*Initialize all instances*/
 $('.bbuilder-instance').each(function() {
@@ -163,11 +164,10 @@ $('.bbuilder-instance').each(function() {
     $(this).children('.bbuilder-content').each(function() {
          enableEditable($(this));
     });
-   
 
     //Render toolbar
     $(this).prepend(bbuilderToolbar);
-        
+
 
 });
 
@@ -203,6 +203,8 @@ $('.bbuilder-toolbar .bb-indent-right').click(function(){
 });
 
 
+
+
 /*---- GENERAL KEYBOARD SHORTCUTS----*/
 $(document).keyup(function(event) {
   var keyPressed = event.keyCode;
@@ -213,6 +215,37 @@ $(document).keyup(function(event) {
         break;
   }
 });
+
+/*---- PATH FUNCTIONS ------*/
+
+/*Thanks to http://stackoverflow.com/users/1595578/jcern
+http://stackoverflow.com/questions/12644147/getting-element-path-for-selector*/
+function dompath( element )
+{
+
+    var path = '';
+    for ( ; element && element.nodeType == 1 && !$(element).hasClass('bbuilder-content'); element = element.parentNode )
+    {
+        var inner = $(element).children().length == 0 ? $(element).text() : '';
+        var eleSelector = element.tagName.toLowerCase();
+
+        if(!$(element).is('[contenteditable="true"]')) {
+            path = ' ' + '<a href="#">' + eleSelector + '</a>' + path;
+        }
+    }
+    return path;
+}
+
+function updatePath(el) {
+    var pathContainer = el.parents('.bbuilder-instance').find('.bbuilder-path-content'),
+        path = dompath(el[0]);
+
+    pathContainer.css('visibility', 'visible').html(path);
+}
+
+function hidePath() {
+    $('.bbuilder-path-content').css('visibility', 'hidden');
+}
 
 /*---- SELECTION / RANGE FUNCTIONS----*/
 
@@ -823,27 +856,35 @@ prettify.js is used to colorize the code. This will insert <span> tags throughou
 (function( $ ){
 	$.fn.toggleSource = function(contentArea) {
 		
-		if(contentArea.hasClass('bb-html-view')) {
+		var self = $(this),
+            trimmedContents;
+
+        if(contentArea.hasClass('bb-html-view')) {
             
 
-            var richContent = $(this).text().replace('&lt;', '<').replace('&gt;', '>');
+            var richContent = self.text().replace('&lt;', '<').replace('&gt;', '>');
 
-            $(this).replaceWith(richContent);
+            self.replaceWith(richContent);
 
         } else {
 
-
-          $(this).find('[contenteditable="true"]').each(function(){
+          //Remove the contenteditable <span> parent
+          self.find('[contenteditable="true"]').each(function(){
             $(this).contents().unwrap();
           });
 
-          var htmlContent = $(this).wrap('<p>').parent().html().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          //If orphan text node as direct child of .bbuilder-content    
+          if(self.is('[contenteditable="true"]')){
+            self = self.contents().unwrap();
+          }
 
+          //Convert HTML tags to string characters
+          self.wrap('<p>');
+          var htmlContent = self.parent().html().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          self.unwrap();
 
-		  $(this).replaceWith('<code contenteditable="true" class="prettyprint lang-html">'+htmlContent+'</code>');
-
-
-
+          //Make the string editable
+		  self.replaceWith('<code contenteditable="true" class="prettyprint lang-html">'+htmlContent+'</code>');
 
         }
 		
@@ -851,5 +892,14 @@ prettify.js is used to colorize the code. This will insert <span> tags throughou
 })( jQuery );
 
 
+$(document).ready(function(){
+    $('.bbuilder-content').on('focus', '[contenteditable="true"]', function(){
+        updatePath($(this));
+    });
 
+    $('.bbuilder-content').on('blur', '[contenteditable="true"]', function(){
+        hidePath();
+    });
+
+});
 

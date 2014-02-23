@@ -1,11 +1,19 @@
 .bbuilder-instance [contenteditable="true"] {
-	border: 1px solid #dcdcdc;
-	margin-left: 5px;
-	margin-right: 5px;
+	border: 1px solid transparent;
+	margin-left: 1px;
+	margin-right: 1px;
 	line-height: 1.5;
+	display: inline-block;
 }
 
+.bbuilder-instance [contenteditable="true"]:hover {
+	border-color: #dcdcdc;
+}
 
+.bb-html-view code[contenteditable="true"] {
+	display: block;
+	margin-bottom: 10px;
+}
 
 .bbuilder-instance [contenteditable="true"]:hover {
 	background: #f2f2f2;

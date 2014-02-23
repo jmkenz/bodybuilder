@@ -8,64 +8,54 @@ github.com/jmkenz/bodybuilder
 var BB = {};
 
 
-/*Function to find deepest children*/
-$.fn.findDeepest = function() {
-    var results = [];
-    this.each(function() {
-        var deepLevel = 0;
-        var deepNode = this;
-        treeWalkFast(this, function(node, level) {
-            if (level > deepLevel) {
-                deepLevel = level;
-                deepNode = node;
-            }
+/*Function to wrap all descendant text nodes in a given element*/
+function wrapSelectionTextNodes(elType) {
+    var sel = rangy.getSelection();
+
+    if (sel.rangeCount > 0) {
+        var range = sel.getRangeAt(0),
+            rangeHtml = range.toHtml(),
+            frag,
+            processedFrag,
+            target,
+            textNodes = new Array();
+
+        range.deleteContents();
+
+        //Process rangeHtml
+        $('body').append('<div id="temp">'+rangeHtml+'</div>');
+        frag =  $('#temp').clone();
+        $('#temp').remove();    
+
+
+
+        //Find text nodes
+        frag.find('*').each(function(){   
+
+            var thisContents = $(this).contents();
+            thisContents = thisContents.filter(function () { return this.nodeType == 3; });
+            textNodes.push(thisContents);
         });
-        results.push(deepNode);
-    });
-    return this.pushStack(results);
-};
 
-var treeWalkFast = (function() {
-    // create closure for constants
-    var skipTags = {"SCRIPT": true, "IFRAME": true, "OBJECT": true, "EMBED": true};
-    return function(parent, fn, allNodes) {
-        var node = parent.firstChild, nextNode;
-        var level = 1;
-        while (node && node != parent) {
-            if (allNodes || node.nodeType === 1) {
-                if (fn(node, level) === false) {
-                    return(false);
-                }
-            }
-            // if it's an element &&
-            //    has children &&
-            //    has a tagname && is not in the skipTags list
-            //  then, we can enumerate children
-            if (node.nodeType === 1 && node.firstChild && !(node.tagName && skipTags[node.tagName])) {                
-                node = node.firstChild;
-                ++level;
-            } else if (node.nextSibling) {
-                node = node.nextSibling;
-            } else {
-                // no child and no nextsibling
-                // find parent that has a nextSibling
-                --level;
-                while ((node = node.parentNode) != parent) {
-                    if (node.nextSibling) {
-                        node = node.nextSibling;
-                        break;
-                    }
-                    --level;
-                }
-            }
-        }
+        //Find direct child text nodes
+        textNodes.push(frag.contents().filter(function () { return this.nodeType == 3; }));
+
+        //Wrap text nodes
+        for (var i = 0; i < textNodes.length; i++) {
+            textNodes[i].wrap('<'+elType+' />');
+        }        
+
+        //Insert processed nodes (going through the array in reverse because 'insertNode' inserts at the beginning of the selection):
+        $(frag.contents().get().reverse()).each(function(){
+            range.insertNode(this);
+        });
+
     }
-})();
-
+}
 
 
 /*Define editable elements*/
-var editableElements = 'div, section, aside, header, footer, blockquote, fieldset, form, h1, h2, h3, h4, h5, h6, p, li';
+var editableElements = 'div, span, section, aside, header, footer, blockquote, fieldset, form, h1, h2, h3, h4, h5, h6, p, li';
 
  /*Get text nodes*/
 function getTextNodesIn(node) {
@@ -89,14 +79,14 @@ function getTextNodesIn(node) {
 
 function enableEditable(instanceContent) {
         
-        /*Enable contenteditable*/    
+        /*Enable contenteditable    
         var editableNodes = instanceContent.find(editableElements),
             editableSpans = instanceContent.children('span');
 
         editableNodes = editableNodes.add(editableSpans);
         
         
-        /*Wrap orphan text nodes in a <span> and add them to the editable stack*/
+        /*Wrap orphan text nodes in a <span> and add them to the editable stack
         var textNodes = getTextNodesIn(instanceContent[0]);
         $(textNodes).each(function(){
             self = $(this);
@@ -106,7 +96,7 @@ function enableEditable(instanceContent) {
             }
         });        
 
-        //Add contenteditable attribute
+        /*Add contenteditable attribute
         editableNodes.each(function() {
             self = $(this);
             nestedEditables = self.find(editableElements);
@@ -114,7 +104,32 @@ function enableEditable(instanceContent) {
             if(nestedEditables.length <= 0 && !self.hasClass('bbwidget') && self.parents('.bbwidget').length <= 0) {
                 self.attr('contenteditable', 'true');
             }
+        });*/
+
+        var textNodes = new Array();
+
+        //Find text nodes
+        instanceContent.find('*').each(function(){   
+
+            var thisContents = $(this).contents();
+            thisContents = thisContents.filter(function () { return this.nodeType == 3 && $.trim($(this).text()) != ""; });
+            textNodes.push(thisContents);
         });
+
+        //Find direct child text nodes
+        textNodes.push(instanceContent.contents().filter(function () { return this.nodeType == 3 && $.trim($(this).text()) != ""; }));
+
+        //Wrap text nodes
+        for (var i = 0; i < textNodes.length; i++) {
+
+           
+
+            if(textNodes[i].parents('.bbwidget').length < 1 ) {
+                textNodes[i].wrap('<span contenteditable="true" />');
+            }
+        }        
+
+
 
 }
 
@@ -157,55 +172,11 @@ $('.bbuilder-instance').each(function() {
 });
 
 $('.bbuilder-toolbar .bb-make-bold').click(function(){
-    var sel = rangy.getSelection()
-
-    if (sel.rangeCount > 0) {
-        var range = sel.getRangeAt(0),
-            rangeHtml = range.toHtml(),
-            frag,
-            processedFrag,
-            target,
-            targetDescendants,
-            textNodes = new Array(),
-            toolbar = $(this).parent('.bbuilder-toolbar');
-
-        range.deleteContents();
-
-        //Process rangeHtml
-        toolbar.append('<div id="temp">'+rangeHtml+'</div>');
-
-        frag =  $('#temp').clone();
-        $('#temp').remove();    
-
-        //Wrap nested text nodes
-        frag.find('*').each(function(){   
-            var thisContents = $(this).contents();
-            thisContents = thisContents.filter(function () { return this.nodeType == 3; });
-            textNodes.push(thisContents);
-        });
-
-        //Wrap direct child text nodes
-        textNodes.push(frag.contents().filter(function () { return this.nodeType == 3; }));
-
-        //Wrap text nodes
-        for (var i = 0; i < textNodes.length; i++) {
-            textNodes[i].wrap('<strong/>');
-        }
-        
-
-        //Insert processed nodes
-        //toolbar.append(frag);
-        
-        
-
-        range.insertNode(frag[0]);
-        
-    }
-
+    wrapSelectionTextNodes('strong');
 });
 
 $('.bbuilder-toolbar .bb-italicize').click(function(){
-    console.log('N/A');
+    wrapSelectionTextNodes('em');
 });
 
 $('.bbuilder-toolbar .bb-tog-source').click(function() {
@@ -860,15 +831,20 @@ prettify.js is used to colorize the code. This will insert <span> tags throughou
             $(this).replaceWith(richContent);
 
         } else {
-          
-          $(this).removeAttr('contenteditable').removeClass('bbfocused');
+
+
           $(this).find('[contenteditable="true"]').each(function(){
-            $(this).removeAttr('contenteditable').removeClass('bbfocused');
+            $(this).contents().unwrap();
           });
 
-          var htmlContent = $(this).clone().wrap('<p>').parent().html().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          var htmlContent = $(this).wrap('<p>').parent().html().replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
 
 		  $(this).replaceWith('<code contenteditable="true" class="prettyprint lang-html">'+htmlContent+'</code>');
+
+
+
+
         }
 		
 	}; 

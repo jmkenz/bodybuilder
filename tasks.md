@@ -1,3 +1,5 @@
-I would love some help on the following tasks:
+To do:
 
--Implement functionality for Bold, Italic, Sup, and Sub buttons, without relying on execCommand.  Use strong tags for bold, and em tags for italic.
+-Implement functionality to un-bold, de-italicize, etc. (unwrap a text node)
+-Implement functionality to add/remove CSS classes on any tag
+-Implement widget system

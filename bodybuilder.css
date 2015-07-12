@@ -3,7 +3,7 @@
 	margin-left: 1px;
 	margin-right: 1px;
 	line-height: 1.5;
-	display: inline-block;
+	display: inline;
 }
 
 .bbuilder-instance [contenteditable="true"]:hover {

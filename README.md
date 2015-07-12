@@ -1,11 +1,12 @@
-BodyBuilder
+BodyBuilder (work in progress)
 ===========
 
-**A rich text editor that’s tired of messing around**  
-What You See Is What You *Mean* rich text editor
+**A What You See Is What You *Mean* Rich Text Editor
 
-[No inline styles] - [Enhanced tag selection] - [Isolated Widgets] - [Responsive
-grids] - [Responsive images]
+*Because structured content is King, and you're authors are tired of messing around
+
+[Enhanced tag selection] - [Isolated Widgets] - [Responsive
+grids] - [Responsive images] - [No inline styles]
 
 Key Features
 ------------
@@ -187,9 +188,7 @@ Detailed Functionality
 
 -   The BodyBuilder approach to images relies on the power of widgets. Any
     responsive images solution can be integrated as a custom widget that
-    generates the exact markup pattern the developer wants to use. If a true
-    responsive images standard emerges, this can be built into BodyBuilder as a
-    standard widget.
+    generates the exact markup pattern the developer wants to use.
 
 -   The end user would specify one or more images and some alt text, and the
     widget would generate the necessary markup.  This markup pattern could then

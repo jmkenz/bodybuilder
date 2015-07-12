@@ -4,107 +4,124 @@ James McKenzie
 github.com/jmkenz/bodybuilder
 */
 
-/*Create BodyBuilder namespace*/
-var BB = {};
+/*----BodyBuilder functions----*/
+var BB = {
+    
+    init : function () {
+              
+        $('.bbuilder-instance').each(function() {
 
+            //Enable contenteditable
+            $(this).children('.bbuilder-content').each(function() {
+                 BB.enableEditable($(this));
+            });
 
-/*Function to wrap all descendant text nodes in a given element*/
-function wrapSelectionTextNodes(elType) {
-    var sel = rangy.getSelection();
-
-    if (sel.rangeCount > 0) {
-        var range = sel.getRangeAt(0),
-            rangeHtml = range.toHtml(),
-            frag,
-            processedFrag,
-            target,
-            textNodes = new Array();
-
-        range.deleteContents();
-
-        //Process rangeHtml
-        $('body').append('<div id="temp">'+rangeHtml+'</div>');
-        frag =  $('#temp').clone();
-        $('#temp').remove();    
-
-
-
-        //Find text nodes
-        frag.find('*').each(function(){   
-
-            var thisContents = $(this).contents();
-            thisContents = thisContents.filter(function () { return this.nodeType == 3; });
-            textNodes.push(thisContents);
+            //Render toolbar
+            BB.renderToolbar($(this));
         });
+    },
+    
+    //Define toolbar
+    renderToolbar : function ($parentContainer) {
+        
+        $parentContainer.prepend('<div class="bbuilder-toolbar"></div><div class="bbuilder-path">Path: <span class="bbuilder-path-content"></span></div>');
+        
+        function createBtn (btnClass, btnInner) {
+            return '<button class="'+btnClass+'">'+btnInner+'</button> ';
+        }
+        
+        var toolbarBtns = {
+            btnBold: {
+                btnClass: "bb-make-bold",
+                btnInner: "<strong>B</strong>",
+                btnFunc: function(){
+                    BB.wrapSelectionTextNodes('strong');
+                }
+            },
+            btnItalicize: {
+                btnClass: "bb-italicize",
+                btnInner: "<em>i</em>",
+                btnFunc: function(){
+                    BB.wrapSelectionTextNodes('em')
+                }
+            },
+            btnSup: {
+                btnClass: "bb-sup",
+                btnInner: "x<sup>y</sup>",
+                btnFunc: function(){
+                    BB.wrapSelectionTextNodes('sup')
+                }
+            },
+            btnSub: {
+                btnClass: "bb-sub",
+                btnInner: "x<sub>y</sub>",
+                btnFunc: function(){
+                    BB.wrapSelectionTextNodes('sub')
+                }
+            },
+            btnTogSource: {
+                btnClass: "bb-tog-source",
+                btnInner: "HTML",
+                btnFunc: function(){
+                    var toolbarEl = $parentContainer.children('.bbuilder-toolbar').first(),
+                    contentArea = $parentContainer.children('.bbuilder-content').first();
 
-        //Find direct child text nodes
-        textNodes.push(frag.contents().filter(function () { return this.nodeType == 3; }));
+                    contentArea.contents().not('.bbwidget').each(function(){
+                        $(this).toggleSource(contentArea);
+                    });
 
-        //Wrap text nodes
-        for (var i = 0; i < textNodes.length; i++) {
-            textNodes[i].wrap('<'+elType+' />');
-        }        
+                    toolbarEl.toggleClass('bb-html-toolbar');
+                    contentArea.toggleClass('bb-html-view');
 
-        //Insert processed nodes (going through the array in reverse because 'insertNode' inserts at the beginning of the selection):
-        $(frag.contents().get().reverse()).each(function(){
-            range.insertNode(this);
-        });
-
-    }
-}
-
-
-/*Define editable elements*/
-var editableElements = 'div, span, section, aside, header, footer, blockquote, fieldset, form, h1, h2, h3, h4, h5, h6, p, li';
-
- /*Get text nodes*/
-function getTextNodesIn(node) {
-    var textNodes = [], whiteSpaceMatcher = /^[\s\t\r\n]*$/;
-
-    function getTextNodes(node) {
-        if (node.nodeType == 3) {
-            if (!whiteSpaceMatcher.test(node.nodeValue)) {
-                textNodes.push(node);
-            }
-        } else {
-            for (var i = 0, len = node.childNodes.length; i < len; ++i) {
-                getTextNodes(node.childNodes[i]);
+                   if(contentArea.hasClass('bb-html-view')) {
+                     prettyPrint();
+                   } else {
+                     BB.enableEditable(contentArea);
+                   }
+                }
             }
         }
-    }
-
-    getTextNodes(node);
-    return textNodes;
-}
-
-function enableEditable(instanceContent) {
         
-        /*Enable contenteditable    
-        var editableNodes = instanceContent.find(editableElements),
-            editableSpans = instanceContent.children('span');
-
-        editableNodes = editableNodes.add(editableSpans);
-        
-        
-        /*Wrap orphan text nodes in a <span> and add them to the editable stack
-        var textNodes = getTextNodesIn(instanceContent[0]);
-        $(textNodes).each(function(){
-            self = $(this);
-            if(self.parent().hasClass('bbuilder-content')) {
-                self.wrap('<span></span>');
-                editableNodes = editableNodes.add(self.parent('span'));
+        var htmlBtns = {
+            btnIndentRight: {
+                btnClass: "bb-indent-right",
+                btnInner: "Indent Right",
+                btnFunc: function(){
+                    insertNodeAtRange('', '\t', 'end');
+                }
             }
-        });        
+        }
+        
+        var bbuilderTools;
+        
+        for (var key in toolbarBtns) {
+            bbuilderTools += createBtn(toolbarBtns[key].btnClass, toolbarBtns[key].btnInner);
+            
+        }
+        
+        bbuilderTools += '<div class="bb-html-tools">';
+    
+        for (var key in htmlBtns) {
+            bbuilderTools += createBtn(htmlBtns[key].btnClass, htmlBtns[key].btnInner);     
+        }
 
-        /*Add contenteditable attribute
-        editableNodes.each(function() {
-            self = $(this);
-            nestedEditables = self.find(editableElements);
-
-            if(nestedEditables.length <= 0 && !self.hasClass('bbwidget') && self.parents('.bbwidget').length <= 0) {
-                self.attr('contenteditable', 'true');
-            }
-        });*/
+        bbuilderTools += '</div>';
+        
+        $parentContainer.children('.bbuilder-toolbar').prepend(bbuilderTools);
+        
+        //Attach event listeners
+        for (var key in toolbarBtns) {           
+            //Event listeners inside loops need a closure
+            (function (_key) {
+                $('.'+toolbarBtns[_key].btnClass).click(function(){
+                    toolbarBtns[_key].btnFunc();
+                });
+            })(key);
+        }
+    },
+    
+    //Find text nodes and make them editable
+     enableEditable : function (instanceContent) {
 
         var textNodes = new Array();
 
@@ -122,86 +139,73 @@ function enableEditable(instanceContent) {
         //Wrap text nodes
         for (var i = 0; i < textNodes.length; i++) {
 
-           
-
             if(textNodes[i].parents('.bbwidget').length < 1 ) {
                 textNodes[i].wrap('<span contenteditable="true" />');
             }
         }        
-
-
-
-}
-
-
-/* INITIALIZE INSTANCES*/
-
-/*Define toolbar*/
-var btnBold = '<button class="bb-make-bold"><strong>B</strong></button>',
-    btnItalicize = '<button class="bb-italicize"><em>i</em></button>',
-    btnSup = '<button class="bb-sup">x<sup>y</sup></button>',
-    btnSub = '<button class="bb-sub">x<sub>y</sub></button>',
-    btnTogSource = '<button class="bb-tog-source">HTML</button>',
-    toolbarHTMLopen = '<div class="bb-html-tools">'
-    btnIndentRight = '<button class="bb-indent-right">Indent Right</button>',
-    toolbarHTMLclose = '</div>',
-    bbuilderToolbar = '<div class="bbuilder-toolbar">'
-                        + btnBold
-                        + btnItalicize
-                        + btnSup
-                        + btnSub
-                        + btnTogSource
-                        + toolbarHTMLopen
-                        + btnIndentRight
-                        + toolbarHTMLclose
-                        + '</div>'
-                        + '<div class="bbuilder-path">Path: <span class="bbuilder-path-content"></span></div>';
-
-/*Initialize all instances*/
-$('.bbuilder-instance').each(function() {
-
-    //Enable contenteditable
-    $(this).children('.bbuilder-content').each(function() {
-         enableEditable($(this));
-    });
-
-    //Render toolbar
-    $(this).prepend(bbuilderToolbar);
-
-
-});
-
-$('.bbuilder-toolbar .bb-make-bold').click(function(){
-    wrapSelectionTextNodes('strong');
-});
-
-$('.bbuilder-toolbar .bb-italicize').click(function(){
-    wrapSelectionTextNodes('em');
-});
-
-$('.bbuilder-toolbar .bb-tog-source').click(function() {
+    }, 
     
-    var toolbarEl = $(this).parent('.bbuilder-toolbar'),
-        contentArea = toolbarEl.siblings('.bbuilder-content').first();
+    //Function to wrap all descendant text nodes in a given element
+    wrapSelectionTextNodes : function (elType) {
+        var sel = rangy.getSelection();
 
-    contentArea.contents().not('.bbwidget').each(function(){
-        $(this).toggleSource(contentArea);
-    });
+        if (sel.rangeCount > 0) {
+            var range = sel.getRangeAt(0),
+                rangeHtml = range.toHtml(),
+                frag,
+                processedFrag,
+                target,
+                textNodes = new Array();
 
-    toolbarEl.toggleClass('bb-html-toolbar');
-    contentArea.toggleClass('bb-html-view');
-   
-   if(contentArea.hasClass('bb-html-view')) {
-     prettyPrint();
-   } else {
-     enableEditable(contentArea);
-   }
-});
+            range.deleteContents();
 
-$('.bbuilder-toolbar .bb-indent-right').click(function(){
-    insertNodeAtRange('', '\t', 'end');
-});
+            //Process rangeHtml
+            $('body').append('<div id="temp">'+rangeHtml+'</div>');
+            frag =  $('#temp').clone();
+            $('#temp').remove();    
 
+
+
+            //Find text nodes
+            frag.find('*').each(function(){   
+
+                var thisContents = $(this).contents();
+                thisContents = thisContents.filter(function () { return this.nodeType == 3; });
+                textNodes.push(thisContents);
+            });
+
+            //Find direct child text nodes
+            textNodes.push(frag.contents().filter(function () { return this.nodeType == 3; }));
+
+            //Wrap text nodes
+            for (var i = 0; i < textNodes.length; i++) {
+                textNodes[i].wrap('<'+elType+' />');
+            }        
+
+            //Insert processed nodes (going through the array in reverse because 'insertNode' inserts at the beginning of the selection):
+            $(frag.contents().get().reverse()).each(function(){
+                range.insertNode(this);
+            });
+            
+            //Reset editable areas
+            var contentArea = $('.bbuilder-content');
+            contentArea.contents().not('.bbwidget').each(function(){
+                $(this).toggleSource(contentArea);
+            });
+            contentArea.addClass('bb-html-view');
+            contentArea.contents().not('.bbwidget').each(function(){
+                $(this).toggleSource(contentArea);
+            });
+            contentArea.removeClass('bb-html-view');
+            BB.enableEditable(contentArea);
+        }
+    }
+    
+};
+
+
+/* ----Initialize Instances----*/
+BB.init();
 
 
 
@@ -211,7 +215,7 @@ $(document).keyup(function(event) {
 
   switch(keyPressed) {
     case 27:
-        BB.focusedEl.blur().removeClass('bbfocused');
+        focusedEl.blur().removeClass('bbfocused');
         break;
   }
 });

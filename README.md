@@ -1,7 +1,7 @@
 BodyBuilder (work in progress)
 ===========
 
-**A What You See Is What You *Mean* Rich Text Editor. Because structured content is King, and you're authors are tired of messing around.
+A What You See Is What You *Mean* Rich Text Editor. Because structured content is King, and you're authors are tired of messing around.
 
 [Enhanced tag selection]
 [Isolated Widgets]
